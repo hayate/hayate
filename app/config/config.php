@@ -57,8 +57,8 @@ $config['default_module'] = 'default';
  * Set view options,
  * current support options are "native" for php templates or "smarty"
  */
-$config['view'] = array('name' => 'native',
-                        'smarty_dir' => APPPATH.'/libsSmarty-2.6.26/libs/',
+$config['view'] = array('name' => 'smarty',
+                        'smarty_dir' => APPPATH.'/libs/Smarty-2.6.26/libs/',
                         'template_dir' => dirname(dirname(__FILE__)).'/templates',
                         'compile_dir' => dirname(dirname(__FILE__)).'/templates_c',
                         'compile_check' => true,
