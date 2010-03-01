@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2010 Andrea Belvedere
+ * Copyright 2009-2010 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -12,24 +12,23 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * @package Hayate
- * @version $Id: Exception.php 38 2010-02-07 12:45:40Z andrea $
+ * @package Hayate_View
+ * @version 1.0
  */
-class Hayate_Exception extends Exception
+interface Hayate_View_Interface
 {
-    public function __construct($errstr = '', $errno = 0, $errfile = null, $errline = -1)
-    {
-        parent::__construct($errstr, $errno);
-        if (null !== $errfile) {
-            $this->file = $errfile;
-        }
-        if ($errline != -1) {
-            $this->line = $errline;
-        }
-    }
+    public function get($name, $default = null);
+    public function set($name, $value = null);
+    public function render($template);
+    public function fetch($template);
+
+    public function __set($name, $value);
+    public function __get($name);
+    public function __isset($name);
+    public function __unset($name);
 }

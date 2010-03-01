@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2010 Andrea Belvedere
+ * Copyright 2009-2010 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -12,20 +12,20 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
  * @package Hayate
- * @version $Id: Config.php 39 2010-02-08 08:47:53Z andrea $
+ * @version 1.0
  */
-class Hayate_Config implements ArrayAccess
+class Config implements ArrayAccess
 {
     protected static $instance = null;
     protected $data;
 
-    protected function __construct() 
+    protected function __construct()
     {
         $this->data = array();
     }
@@ -45,9 +45,12 @@ class Hayate_Config implements ArrayAccess
             $namespace = substr($name, 0, $pos);
             $name = str_replace($namespace.'.', '', $name);
         }
-        if (array_key_exists($namespace, $this->data)) {
-            if (isset($this->data[$namespace][$name])) {
-                if ($slash && is_string($this->data[$namespace][$name])) {
+        if (array_key_exists($namespace, $this->data))
+	{
+            if (isset($this->data[$namespace][$name]))
+	    {
+                if ($slash && is_string($this->data[$namespace][$name]))
+		{
                     return rtrim($this->data[$namespace][$name], '/\\') . DIRECTORY_SEPARATOR;
                 }
                 return $this->data[$namespace]->$name;
@@ -64,8 +67,8 @@ class Hayate_Config implements ArrayAccess
             $name = str_replace($namespace.'.', '', $name);
         }
         if (! array_key_exists($namespace, $this->data)) {
-            require_once 'Hayate/Exception.php';
-            throw new Hayate_Exception(sprintf(_('namespace %s not found.'), $namespace));
+            require_once 'HayateException.php';
+            throw new HayateException(sprintf(_('namespace %s not found.'), $namespace));
         }
         $this->data[$namespace][$name] = $value;
     }
@@ -106,17 +109,17 @@ class Hayate_Config implements ArrayAccess
      */
     public function load($namespace, $conf, $mutable = false)
     {
-        require_once 'Hayate/Registry.php';
+        require_once 'Registry.php';
         if (is_array($conf)) {
-            $this->data[$namespace] = new Hayate_Registry($conf, $mutable);
+            $this->data[$namespace] = new Registry($conf, $mutable);
         }
         else if (is_string($conf) && file_exists($conf)) {
             require $conf;
-            $this->data[$namespace] = new Hayate_Registry($config, $mutable);
+            $this->data[$namespace] = new Registry($config, $mutable);
         }
         else {
-            require_once 'Hayate/Exception.php';
-            throw new Hayate_Exception(_('Config file could not be loaded.'));
+            require_once 'HayateException.php';
+            throw new HayateException(_('Config file could not be loaded.'));
         }
     }
 

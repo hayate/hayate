@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2010 Andrea Belvedere
+ * Copyright 2009-2010 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -12,7 +12,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,9 +21,9 @@
  * invoked by the dispatcher.
  *
  * @package Hayate
- * @version $Id: Router.php 39 2010-02-08 08:47:53Z andrea $
+ * @version 1.0
  */
-class Hayate_Router
+class Router
 {
     protected static $instance = null;
     protected $routes = array();
@@ -33,8 +33,7 @@ class Hayate_Router
 
     protected function __construct()
     {
-        require_once 'Hayate/Config.php';
-        $this->config = Hayate_Config::instance();
+        $this->config = Config::instance();
         if (isset($this->config->routes) && is_array($this->config->routes)) {
             $this->routes = $this->config->routes;
         }
@@ -42,8 +41,7 @@ class Hayate_Router
         if (isset($this->config->base_path)) {
             $base_path = preg_split('|/|', $this->config->base_path, -1, PREG_SPLIT_NO_EMPTY);
         }
-        require_once 'Hayate/URI.php';
-        $uri = Hayate_URI::instance();
+        $uri = URI::instance();
         $segments = $uri->segments();
         for ($i = 0; $i < count($base_path); $i++) {
             if (isset($segments[$i]) && ($segments[$i] == $base_path[$i])) {
@@ -66,9 +64,12 @@ class Hayate_Router
         if (isset($this->routes[$this->path])) {
             $this->routed_path = $this->routes[$this->path];
         }
-        else {
-            foreach ($this->routes as $key => $val) {
-                if (preg_match('|^'.$key.'|u', $this->path) == 1) {
+        else
+	{
+            foreach ($this->routes as $key => $val)
+	    {
+                if (preg_match('|^'.$key.'|u', $this->path) == 1)
+		{
                     if (false !== strpos($val, '$')) {
                         $this->routed_path = preg_replace('|^'.$key.'|u', $val, $this->path);
                     }

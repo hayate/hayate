@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2010 Andrea Belvedere
+ * Copyright 2009-2010 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -12,15 +12,15 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
  * @package Hayate
- * @version $Id: Dispatcher.php 39 2010-02-08 08:47:53Z andrea $
+ * @version 1.0
  */
-class Hayate_Dispatcher
+class Dispatcher
 {
     protected static $instance = null;
     protected $routed_uri;
@@ -29,21 +29,20 @@ class Hayate_Dispatcher
     protected $controller = 'index';
     protected $action = 'index';
     protected $modules_path;
-    protected $params = array();
+    protected $params;
 
 
     protected function __construct()
     {
-        require_once 'Hayate/Router.php';
-        $route = Hayate_Router::instance();
+        $route = Router::instance();
         $route->route();
         $this->routed_uri = $route->routedPath();
         $this->uri = $route->path();
 
-        require_once 'Hayate/Config.php';
-        $config = Hayate_Config::instance();
+        $config = Config::instance();
         $this->module = isset($config->default_module) ? $config->default_module : 'default';
         $this->modules_path = APPPATH.'modules/';
+	$this->route();
     }
 
     public static function instance()
@@ -56,39 +55,27 @@ class Hayate_Dispatcher
 
     public function dispatch()
     {
-        $segments = explode('/', $this->routed_uri);
-        $module = array_shift($segments);
-        if (null !== $module) 
-        {
-            $modulepath = $this->module_path . $module;
-            if (is_dir($modulepath)) 
-            {
-                $this->module($module);
-                $controller = array_shift($segments);
-                $action = array_shift($segments);
-                $this->controller = empty($controller) ? $this->controller : $controller;
-                $this->action = empty($action) ? $this->action : $action;
-            }
-            else {
-                $this->controller($module);
-                $action = array_shift($segments);
-                $this->action = empty($action) ? $this->action : $action;
-            }
-        }
-        require_once $this->modules_path.$module.'/controllers/'.$this->controller.'.php';
-        $classname = ucfirst($this->module).'_'.ucfirst($this->controller);
-
-        $rfc = new ReflectionClass($this->.'_'.$this->getController().'_Controller');
-        if ($rfc->isSubclassOf('Hayate_Controller_Abstract') && $rfc->isInstantiable()) {
-            $controller = $rfc->newInstance();
-            $action = $rfc->hasMethod($this->getAction()) ? $rfc->getMethod($this->getAction()) : $rfc->getMethod('__call');
-            if ($action->isPublic() && (strpos($action->getName(), '_') !== 0)) {
-                $action->invokeArgs($controller, $this->getParams());
-            }
-            else if ($action->getName() == '__call') {
-                $action->invoke($controller, $this->getAction(), $this->getParams());
-            }
-        }
+	$filepath = $this->modules_path.$this->module().'/controllers/'.$this->controller().'.php';
+	if (is_file($filepath) && is_readable($filepath))
+	{
+	    require_once $filepath;
+	    $classname = ucfirst($this->module).'_'.ucfirst($this->controller);
+	    $rfc = new ReflectionClass($classname);
+	    if ($rfc->isSubclassOf('Controller') && $rfc->isInstantiable())
+	    {
+		$controller = $rfc->newInstance();
+		$action = $rfc->hasMethod($this->action()) ? $rfc->getMethod($this->action()) : $rfc->getMethod('__call');
+		if ($action->isPublic() && (strpos($action->getName(), '_') !== 0)) {
+		    $action->invokeArgs($controller, $this->params());
+		}
+		else if ($action->getName() == '__call') {
+		    $action->invoke($controller, $this->action(), $this->params());
+		}
+	    }
+	}
+	else {
+	    throw new HayateException('Not Found', 404);
+	}
     }
 
     public function module($name = null)
@@ -113,5 +100,38 @@ class Hayate_Dispatcher
             return $this->action;
         }
         $this->action = $name;
+    }
+
+    private function params()
+    {
+	if (! is_array($this->params))
+	{
+	    $this->params = array();
+	}
+	return $this->params;
+    }
+
+    protected function route()
+    {
+	$segments = explode('/', $this->routed_uri);
+        $module = array_shift($segments);
+        if (! empty($module))
+        {
+            $modulepath = $this->modules_path . $module;
+            if (is_dir($modulepath))
+            {
+                $this->module($module);
+                $controller = array_shift($segments);
+                $action = array_shift($segments);
+                $this->controller = empty($controller) ? $this->controller : $controller;
+                $this->action = empty($action) ? $this->action : $action;
+            }
+            else {
+                $this->controller($module);
+                $action = array_shift($segments);
+                $this->action = empty($action) ? $this->action : $action;
+            }
+	    $this->params = $segments;
+        }
     }
 }

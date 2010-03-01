@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2010 Andrea Belvedere
+ * Copyright 2009-2010 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -12,32 +12,40 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * @version $Id: Hayate.php 39 2010-02-08 08:47:53Z andrea $
+ * @version 1.0
  */
 final class Hayate
 {
     private static $instance = null;
-    private $application = false;
-    private $dispatcher = 'default';
-    private $autoload = true;
 
     private function __construct()
     {
-        set_error_handler(array($this, 'error_handler'));
         // set include paths
         $include_path = get_include_path().PATH_SEPARATOR;
         $include_path .= dirname(__FILE__).PATH_SEPARATOR;
+        $include_path .= dirname(__FILE__).'/Hayate'.PATH_SEPARATOR;
         $include_path .= APPPATH;
         set_include_path($include_path);
 
-        require_once APPPATH.'config/config.php';
-        require_once 'Hayate/Config.php';
-        $reg = Hayate_Config::instance();
+	// register error handler
+        set_error_handler(array($this, 'error_handler'));
+
+	// register hayate autoload
+        if (false === spl_autoload_functions())
+	{
+            if (function_exists('__autoload')) {
+                spl_autoload_register('__autoload');
+            }
+        }
+        spl_autoload_register(array('Hayate', 'autoload'));
+
+	// load hayate config
+        $reg = Config::instance();
         // the last parameter is false = this config can't be modified
         $reg->load('hayate', APPPATH.'config/config.php', false);
     }
@@ -52,22 +60,41 @@ final class Hayate
 
     public function run()
     {
-        require_once 'Hayate/Request.php';
-        require_once 'Hayate/Dispatcher.php';
-        $request = Hayate_Request::instance();
-        $dispatcher = Hayate_Dispatcher::instance();
-        
+        $request = Request::instance();
+        $dispatcher = Dispatcher::instance();
         do {
-            // set the request as dispatched
             $request->dispatched(true);
             $dispatcher->dispatch();
-            
+
         } while (false === $request->dispatched());
+    }
+
+    public static function autoload($classname)
+    {
+	if (false === strpos($classname, '_'))
+	{
+	    $filename = HAYATE.'Hayate/'.$classname.'.php';
+	}
+	else {
+	    $segs = explode('_', $classname);
+	    if (is_array($segs)) {
+		switch ($segs[0]) {
+		case 'Hayate':
+		    $filename = HAYATE.implode('/', $segs).'.php';
+		    break;
+		}
+	    }
+	}
+	if (isset($filename) && is_file($filename) && is_readable($filename))
+	{
+	    require_once $filename;
+	}
     }
 
     public function error_handler($errno, $errstr, $errfile = '', $errline = 0)
     {
-        require_once 'Hayate/Exception.php';
-        throw new Hayate_Exception($errstr, $errno, $errfile, $errline);
+	Log::error($errstr);
+        //require_once 'HayateException.php';
+        throw new HayateException($errstr, $errno, $errfile, $errline);
     }
 }

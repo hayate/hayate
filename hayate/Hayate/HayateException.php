@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2010 Andrea Belvedere
+ * Copyright 2009-2010 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,28 +17,19 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * @file index.php
+ * @package Hayate
  * @version 1.0
  */
-
-/**
- * the application directory path
- */
-$app_path = '../app';
-
-/**
- * hayate directory path
- */
-$hayate_path = '../hayate';
-
-
-/** below this line only make changes if you know what you are doing **/
-
-define('APPPATH', realpath($app_path).DIRECTORY_SEPARATOR);
-define('HAYATE', realpath($hayate_path).DIRECTORY_SEPARATOR);
-unset($app_path);
-unset($hayate_path);
-
-require_once HAYATE.'Hayate.php';
-$hayate = Hayate::instance();
-$hayate->run();
+class HayateException extends Exception
+{
+    public function __construct($errstr = '', $errno = 0, $errfile = null, $errline = -1)
+    {
+        parent::__construct($errstr, $errno);
+        if (null !== $errfile) {
+            $this->file = $errfile;
+        }
+        if ($errline != -1) {
+            $this->line = $errline;
+        }
+    }
+}

@@ -12,14 +12,14 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /**
  * Main application configuration file, modify as required
- * 
+ *
  * @version $Id: config.php 39 2010-02-08 08:47:53Z andrea $
  */
 
@@ -35,6 +35,15 @@ $config['hostname'] = 'hayate';
 $config['base_path'] = '/';
 
 /**
+ * set log level
+ * 0 = no log
+ * 1 = error
+ * 2 = debug
+ * 3 = info
+ */
+$config['error_level'] = 1;
+
+/**
  * set to true, to protect against Cross Site Scripting attacks
  */
 $config['xss_clean'] = true;
@@ -45,11 +54,11 @@ $config['xss_clean'] = true;
 $config['default_module'] = 'default';
 
 /**
- * Set view options, 
+ * Set view options,
  * current support options are "native" for php templates or "smarty"
  */
 $config['view'] = array('name' => 'native',
-                        'smarty_dir' => '/home/andrea/Desktop/Smarty-2.6.26/libs/',
+                        'smarty_dir' => APPPATH.'/libsSmarty-2.6.26/libs/',
                         'template_dir' => dirname(dirname(__FILE__)).'/templates',
                         'compile_dir' => dirname(dirname(__FILE__)).'/templates_c',
                         'compile_check' => true,

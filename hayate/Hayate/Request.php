@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2010 Andrea Belvedere
+ * Copyright 2009-2010 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -12,15 +12,15 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
  * @package Hayate
- * @version $Id: Request.php 39 2010-02-08 08:47:53Z andrea $
+ * @version 1.0
  */
-class Hayate_Request
+class Request
 {
     protected static $instance = null;
     protected $dispatch;
@@ -57,10 +57,15 @@ class Hayate_Request
     {
         return $this->method == 'post';
     }
-    
+
     public function isGet()
     {
         return $this->method == 'get';
+    }
+
+    public function isPut()
+    {
+	return $this->method == 'put';
     }
 
     /**
@@ -78,6 +83,6 @@ class Hayate_Request
 
     public function refresh()
     {
-        $this->redirect(Hayate_URI::instance()->current(), 302);
+        $this->redirect(URI::instance()->current(), 302);
     }
 }

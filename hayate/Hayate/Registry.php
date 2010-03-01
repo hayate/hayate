@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2010 Andrea Belvedere
+ * Copyright 2009-2010 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -12,15 +12,15 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
  * @package Hayate
- * @version $Id: Registry.php 38 2010-02-07 12:45:40Z andrea $
+ * @version 1.0
  */
-class Hayate_Registry extends ArrayObject
+class Registry extends ArrayObject
 {
     protected $mutable;
 
@@ -33,8 +33,8 @@ class Hayate_Registry extends ArrayObject
     public function offsetSet($index, $newval)
     {
         if (! $this->mutable) {
-            require_once 'Hayate/Exception.php';
-            throw new Hayate_Exception(sprintf(_('This %s was created immutable.'), __CLASS__));
+            require_once 'HayateException.php';
+            throw new HayateException(sprintf(_('This %s was created immutable.'), __CLASS__));
         }
         parent::offsetSet($index, $newval);
     }
@@ -42,8 +42,8 @@ class Hayate_Registry extends ArrayObject
     public function offsetUnset($index)
     {
         if (! $this->mutable) {
-            require_once 'Hayate/Exception.php';
-            throw new Hayate_Exception(sprintf(_('This %s was created immutable.'), __CLASS__));
+            require_once 'HayateException.php';
+            throw new HayateException(sprintf(_('This %s was created immutable.'), __CLASS__));
         }
         parent::offsetUnset($index);
     }
@@ -51,8 +51,8 @@ class Hayate_Registry extends ArrayObject
     public function __set($index, $newval)
     {
         if (! $this->mutable) {
-            require_once 'Hayate/Exception.php';
-            throw new Hayate_Exception(sprintf(_('This %s was created immutable.'), __CLASS__));
+            require_once 'HayateException.php';
+            throw new HayateException(sprintf(_('This %s was created immutable.'), __CLASS__));
         }
         parent::__set($index, $newval);
     }
@@ -60,8 +60,8 @@ class Hayate_Registry extends ArrayObject
     public function append($value)
     {
         if (! $this->mutable) {
-            require_once 'Hayate/Exception.php';
-            throw new Hayate_Exception(sprintf(_('This %s was created immutable.'), __CLASS__));
+            require_once 'HayateException.php';
+            throw new HayateException(sprintf(_('This %s was created immutable.'), __CLASS__));
         }
         parent::append($value);
     }

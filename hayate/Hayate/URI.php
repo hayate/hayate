@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2010 Andrea Belvedere
+ * Copyright 2009-2010 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -12,15 +12,15 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- *  
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
  * @package Hayate
- * @version $Id: URI.php 39 2010-02-08 08:47:53Z andrea $
+ * @version 1.0
  */
-class Hayate_URI
+class URI
 {
     protected static $instance = null;
     protected $current;
@@ -29,13 +29,12 @@ class Hayate_URI
 
     protected function __construct()
     {
-        require_once 'Hayate/Config.php';
-        $this->config = Hayate_Config::instance();
-
+        $this->config = Config::instance();
         $this->current = $this->scheme().'://'.
             $this->hostname().'/'.$this->path().$this->query(true);
-
         $this->segments = preg_split('|/|', $this->path(), -1, PREG_SPLIT_NO_EMPTY);
+	// make sure all segments are lower case
+	$this->segments = array_map('mb_strtolower', $this->segments);
     }
 
     public static function instance()
@@ -62,9 +61,12 @@ class Hayate_URI
         if (is_numeric($seg) && isset($this->segments[$seg])) {
             return $this->segments[$seg];
         }
-        else if (is_string($seg)) {
-            while (false !== ($param = current($this->segments))) {
-                if ($param == $seg) {
+        else if (is_string($seg))
+	{
+            while (false !== ($param = current($this->segments)))
+	    {
+                if ($param == $seg)
+		{
                     if (false !== ($ans = next($this->segments))) {
                         reset($this->segments);
                         return $ans;
@@ -108,8 +110,7 @@ class Hayate_URI
         if (isset($_SERVER['SERVER_NAME']) && strlen($_SERVER['SERVER_NAME']) > 0) {
             return $_SERVER['SERVER_NAME'].$port;
         }
-        require_once 'Hayate/Exception.php';
-        throw new Hayate_Exception(_('A valid host name could not be found.'));
+        throw new HayateException(_('A valid host name could not be determined.'));
     }
 
     public function scheme()
