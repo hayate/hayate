@@ -25,7 +25,7 @@ final class Hayate
 
     private function __construct()
     {
-        // set include paths
+        // add include paths
         $include_path = get_include_path().PATH_SEPARATOR;
         $include_path .= dirname(__FILE__).PATH_SEPARATOR;
         $include_path .= dirname(__FILE__).'/Hayate'.PATH_SEPARATOR;
@@ -48,6 +48,9 @@ final class Hayate
         $reg = Config::instance();
         // the last parameter is false = this config can't be modified
         $reg->load('hayate', APPPATH.'config/config.php', false);
+
+	// add modules include paths
+	$this->add_modules_paths();
     }
 
     public static function instance()
@@ -96,5 +99,26 @@ final class Hayate
 	Log::error($errstr);
         //require_once 'HayateException.php';
         throw new HayateException($errstr, $errno, $errfile, $errline);
+    }
+
+    protected function add_modules_paths()
+    {
+	$config = Config::instance();
+	$modules = $config->get('modules', array());
+	$modules[] = $config->get('default_module', 'default');
+	$include_path = get_include_path().PATH_SEPARATOR;
+
+	foreach ($modules as $module)
+	{
+	    $files = new RegexIterator(new DirectoryIterator(APPPATH.'modules/'.$module),'/^[^\.]/');
+	    foreach ($files as $file)
+	    {
+		if ($file->isDir() && $file->isReadable())
+		{
+		    $include_path .= APPPATH.'modules/'.$module.'/'.$file->getFilename().PATH_SEPARATOR;
+		}
+	    }
+	}
+	set_include_path($include_path);
     }
 }
