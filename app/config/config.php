@@ -67,7 +67,7 @@ $config['view'] = array('name' => 'smarty',
 /**
  * Set database options
  */
-$config['database'] = array('connection' => array('driver' => 'mysqli',
+$config['database'] = array('connection' => array('driver' => 'mysql',
                                                   'user' => 'andrea',
                                                   'pass' => 'donkey',
                                                   'host' => 'localhost',

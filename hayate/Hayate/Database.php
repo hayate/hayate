@@ -20,7 +20,7 @@
  * @package Hayate
  * @version 1.0
  */
-abstract class Database
+abstract class Database implements Hayate_Database_Interface
 {
     protected static $instance = null;
     protected $db;
@@ -28,7 +28,6 @@ abstract class Database
     protected function __construct()
     {
         $this->db = $this->getDB();
-
     }
 
     public static function instance()
@@ -60,29 +59,69 @@ abstract class Database
         }
 
         $dbconf = new stdClass();
-        $dbconf->user = isset($database['connection']['user']) ? $database['connection']['user'] : null;
-        $dbconf->pass = isset($database['connection']['pass']) ? $database['connection']['pass'] : null;
-        $dbconf->host = isset($database['connection']['host']) ? $database['connection']['host'] : '';
-        $dbconf->port = isset($database['connection']['port']) ? $database['connection']['port'] : null;
-        $dbconf->dbname = isset($database['connection']['database']) ? $database['connection']['database'] : '';
-
+        foreach ($database['connection'] as $key => $val)
+        {
+            $dbconf->$key = $val;
+        }
         // hayate supported db
         switch ($dsn)
         {
-        case 'mysql':
-        case 'mysqli':
-        case 'sybase':
-        case 'mssql':
-        case 'dblib':
-        case 'pgsql':
-        case 'oci':
-        case 'sqlite':
-        case 'sqlite2':
-            $classname = 'Hayate_Database_'.ucfirst($dsn);
-        default:
-            throw new HayateException(sprintf(_('Driver "%s" currently not supported'), $dsn));
+            case 'mysql':
+            case 'mysqli':
+                $classname = 'Hayate_Database_Mysql';
+            break
+            case 'sybase':
+            case 'mssql':
+            case 'dblib':
+            case 'pgsql':
+            case 'oci':
+            case 'sqlite':
+            case 'sqlite2':
+                $classname = 'Hayate_Database_'.ucfirst($dsn);
+            default:
+                throw new HayateException(sprintf(_('Driver "%s" currently not supported'), $dsn));
         }
         return new $classname($dbconf);
+    }
+
+    public function from($table)
+    {
+        $this->db->from($table);
+    }
+
+    public function where($field, $value = null)
+    {
+        $this->db->where($field, $value);
+    }
+
+    public function join($table, $field, $value = null)
+    {
+        $this->db->join($table, $field, $value);
+    }
+
+    public function groupby($field)
+    {
+
+    }
+
+    public function orderby($field, $direction)
+    {
+
+    }
+
+    public function limit($offset, $count = null)
+    {
+
+    }
+
+    public function find()
+    {
+
+    }
+
+    public function find_all($offset = 0, $count = null)
+    {
+
     }
 
     /*
