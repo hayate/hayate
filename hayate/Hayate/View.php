@@ -87,7 +87,7 @@ class View
         $config = Config::instance()->get('view', 'native');
 
         if (isset($config['name']))
-	{
+        {
             switch ($config['name']) {
             case 'smarty':
                 return Hayate_View_Smarty::instance();
