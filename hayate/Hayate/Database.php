@@ -20,14 +20,17 @@
  * @package Hayate
  * @version 1.0
  */
-abstract class Database implements Hayate_Database_Interface
+class Database implements Hayate_Database_Interface
 {
     protected static $instance = null;
-    protected $db;
+    protected $conn;
 
     protected function __construct()
     {
-        $this->db = $this->getDB();
+        $config = Config::instance()->get('database');
+        if (! is_array($config)) {
+            throw new Hayate_Database_Exception(_('Missing database configuration.'));
+        }
     }
 
     public static function instance()
@@ -58,11 +61,6 @@ abstract class Database implements Hayate_Database_Interface
             throw new HayateException(sprintf(_('Driver "%s" not installed'), $dsn));
         }
 
-        $dbconf = new stdClass();
-        foreach ($database['connection'] as $key => $val)
-        {
-            $dbconf->$key = $val;
-        }
         // hayate supported db
         switch ($dsn)
         {
@@ -81,7 +79,7 @@ abstract class Database implements Hayate_Database_Interface
             default:
                 throw new HayateException(sprintf(_('Driver "%s" currently not supported'), $dsn));
         }
-        return new $classname($dbconf);
+        return new $classname(new ArrayObject($database, ArrayObject::ARRAY_AS_PROPS));
     }
 
     public function from($table)
@@ -101,72 +99,41 @@ abstract class Database implements Hayate_Database_Interface
 
     public function groupby($field)
     {
-
+        $this->db->groupby($field);
     }
 
     public function orderby($field, $direction)
     {
-
+        $this->db->orderby($field, $direction);
     }
 
     public function limit($offset, $count = null)
     {
-
+        $this->db->limit($offset, $count);
     }
 
     public function find()
     {
-
+        return $this->db->find();
     }
 
-    public function find_all($offset = 0, $count = null)
+    public function findAll($offset = 0, $count = null)
     {
-
+        return $this->db->findAll($offset, $count);
     }
 
-    /*
-    protected function connect()
+    public function query($query, $params)
     {
-        // build DSN
-        switch ($dsn)
-        {
-        case 'mysql':
-        case 'mysqli':
-        case 'sybase':
-        case 'mssql':
-        case 'dblib':
-            {
-                $dsn .= ':host='.$host;
-                $dsn .= (is_numeric($port)) ? ';port='.$port : '';
-                $dsn .= (!empty($dbname)) ? ';dbname='.$dbname : '';
-            }
-        break;
-        case 'pgsql':
-            {
-                $dsn .= ':host='.$host;
-                $dsn .= (is_numeric($port)) ? ' port='.$port : '';
-                $dsn .= (!empty($dbname)) ? ' dbname='.$dbname : '';
-            }
-        break;
-        case 'oci':
-            {
-                if (empty($host)) {
-                    $dsn .= ':'.$dbname;
-                }
-                else {
-                    $dsn .= ':dbname=//'.$host;
-                    $dsn .= (!empty($port)) ? ':'.$port;
-                    $dsn .= '/'.$dbname;
-                }
-            }
-        case 'sqlite':
-        case 'sqlite2':
-            {
-                $dsn .= ':'.$dbname;
-            }
-        default:
-            throw new HayateException(sprintf(_('Driver "%s" currently not supported'), $dsn));
-        }
+        return $this->db->query($query, $params);
     }
-    */
+
+    public function insert($table, $fields, $values)
+    {
+        return $this->db->insert($table, $fields, $values);
+    }
+
+    public function update($table, $fields, $values)
+    {
+        return $this->db->update($table, $fields, $values);
+    }
 }

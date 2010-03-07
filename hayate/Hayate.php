@@ -32,25 +32,22 @@ final class Hayate
         $include_path .= APPPATH;
         set_include_path($include_path);
 
-	// register error handler
+        // register error handler
         set_error_handler(array($this, 'error_handler'));
 
-	// register hayate autoload
+        // register hayate autoload
         if (false === spl_autoload_functions())
-	{
+        {
             if (function_exists('__autoload')) {
                 spl_autoload_register('__autoload');
             }
         }
         spl_autoload_register(array('Hayate', 'autoload'));
 
-	// load hayate config
-        $reg = Config::instance();
-        // the last parameter is false = this config can't be modified
-        $reg->load('hayate', APPPATH.'config/config.php', false);
-
-	// add modules include paths
-	$this->add_modules_paths();
+        // load config files
+        $this->load_configs();
+        // add modules include paths
+        $this->add_modules_paths();
     }
 
     public static function instance()
@@ -74,51 +71,69 @@ final class Hayate
 
     public static function autoload($classname)
     {
-	if (false === strpos($classname, '_'))
-	{
-	    $filename = HAYATE.'Hayate/'.$classname.'.php';
-	}
-	else {
-	    $segs = explode('_', $classname);
-	    if (is_array($segs)) {
-		switch ($segs[0]) {
-		case 'Hayate':
-		    $filename = HAYATE.implode('/', $segs).'.php';
-		    break;
-		}
-	    }
-	}
-	if (isset($filename) && is_file($filename) && is_readable($filename))
-	{
-	    require_once $filename;
-	}
+        if (false === strpos($classname, '_'))
+        {
+            $filename = HAYATE.'Hayate/'.$classname.'.php';
+        }
+        else {
+            $segs = explode('_', $classname);
+            if (is_array($segs)) {
+                switch ($segs[0]) {
+                case 'Hayate':
+                    $filename = HAYATE.implode('/', $segs).'.php';
+                    break;
+                }
+            }
+        }
+        if (isset($filename) && is_file($filename) && is_readable($filename))
+        {
+            require_once $filename;
+        }
     }
 
     public function error_handler($errno, $errstr, $errfile = '', $errline = 0)
     {
-	Log::error($errstr);
+        Log::error($errstr);
         //require_once 'HayateException.php';
         throw new HayateException($errstr, $errno, $errfile, $errline);
     }
 
+    protected function load_configs()
+    {
+        $conf = Config::instance();
+        $path = APPPATH.'config/';
+        // only load files ending in .php
+        $files = new RegexIterator(new DirectoryIterator($path), '/.*\.php$/i');
+        foreach ($files as $file)
+        {
+            if ($file->isFile() && $file->isReadable())
+            {
+                $filepath = $file->getPath().'/'.$file->getFilename();
+                $namespace = $file->getBasename('.php');
+                // the last parameter is false = this config can't be modified
+                $conf->load($namespace, $filepath, false);
+            }
+        }
+    }
+
     protected function add_modules_paths()
     {
-	$config = Config::instance();
-	$modules = $config->get('modules', array());
-	$modules[] = $config->get('default_module', 'default');
-	$include_path = get_include_path().PATH_SEPARATOR;
+        $config = Config::instance();
+        $modules = $config->get('modules', array());
+        $modules[] = $config->get('default_module', 'default');
+        $include_path = get_include_path().PATH_SEPARATOR;
 
-	foreach ($modules as $module)
-	{
-	    $files = new RegexIterator(new DirectoryIterator(APPPATH.'modules/'.$module),'/^[^\.]/');
-	    foreach ($files as $file)
-	    {
-		if ($file->isDir() && $file->isReadable())
-		{
-		    $include_path .= APPPATH.'modules/'.$module.'/'.$file->getFilename().PATH_SEPARATOR;
-		}
-	    }
-	}
-	set_include_path($include_path);
+        foreach ($modules as $module)
+        {
+            $files = new RegexIterator(new DirectoryIterator(APPPATH.'modules/'.$module),'/^[^\.]/');
+            foreach ($files as $file)
+            {
+                if ($file->isDir() && $file->isReadable())
+                {
+                    $include_path .= APPPATH.'modules/'.$module.'/'.$file->getFilename().PATH_SEPARATOR;
+                }
+            }
+        }
+        set_include_path($include_path);
     }
 }

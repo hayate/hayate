@@ -22,11 +22,21 @@
  */
 class Hayate_Database_Mysql extends Hayate_Database_Abstract
 {
-    public function __construct(stdClass $dbConf)
+    public function __construct(ArrayObject $conf)
     {
         $dsn = 'mysql:host='.$dbConf->host;
         $dsn .= is_numeric($dbConf->port) ? ';port='.$dbConf->port;
         $dsn .= (!empty($dbConf->database)) ? ';dbname='.$dbConf->database;
         parent::__construct($dsn, $dbConf->user, $dbConf->pass);
+    }
+
+    public function connect()
+    {
+
+    }
+
+    public function setCharSet($charset)
+    {
+
     }
 }

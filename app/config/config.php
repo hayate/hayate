@@ -18,9 +18,9 @@
  */
 
 /**
- * Main application configuration file, modify as required
+ * General application configuration file, modify as required
  *
- * @version $Id: config.php 39 2010-02-08 08:47:53Z andrea $
+ * @version 1.0
  */
 
 /**
@@ -63,24 +63,3 @@ $config['view'] = array('name' => 'smarty',
                         'compile_dir' => dirname(dirname(__FILE__)).'/templates_c',
                         'compile_check' => true,
                         'use_sub_dirs' => true);
-
-/**
- * Set database options
- */
-$config['database'] = array('connection' => array('driver' => 'mysql',
-                                                  'user' => 'andrea',
-                                                  'pass' => 'donkey',
-                                                  'host' => 'localhost',
-                                                  'port' => false,
-                                                  'database' => 'hayate'),
-                            'persistent' => false,
-                            'charset' => 'utf8',
-                            'object' => true,
-                            'escape' => true,
-                            'prefix' => '');
-
-/**
- * routes
- */
-$config['routes'] = array('author/(.*)' => 'index/index/$1',
-                          'author/andrea-belvedere' => 'author/marco-belvedere');

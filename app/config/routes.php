@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2009-2010 Andrea Belvedere
+ * Copyright 2009 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,21 +16,11 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 /**
- * @package Hayate_Database
- * @version 1.0
+ * define routes re-mapping
+ *
+ * i.e.
+ *
+ * $config['author/(.*)'] = 'index/index/$1';
  */
-interface Hayate_Database_Interface
-{
-    public function from($table);
-    public function where($field, $value = null);
-    public function join($table, $field, $value = null);
-    public function groupby($field);
-    public function orderby($field, $direction);
-    public function limit($offset, $count = null);
-    public function find();
-    public function findAll($offset = 0, $count = null);
-    public function query($query, $params);
-    public function insert($table, $fields, $values);
-    public function update($table, $fields, $values);
-}

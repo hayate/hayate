@@ -46,11 +46,11 @@ class Config implements ArrayAccess
             $name = str_replace($namespace.'.', '', $name);
         }
         if (array_key_exists($namespace, $this->data))
-	{
+        {
             if (isset($this->data[$namespace][$name]))
-	    {
+            {
                 if ($slash && is_string($this->data[$namespace][$name]))
-		{
+                {
                     return rtrim($this->data[$namespace][$name], '/\\') . DIRECTORY_SEPARATOR;
                 }
                 return $this->data[$namespace]->$name;
@@ -104,7 +104,7 @@ class Config implements ArrayAccess
     }
 
     /**
-     * @param $ns String The namespace
+     * @param $namespace String The namespace
      * @param $conf String|array If String then is a path to a config file
      */
     public function load($namespace, $conf, $mutable = false)

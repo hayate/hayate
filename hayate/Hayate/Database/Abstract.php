@@ -33,6 +33,10 @@ abstract class Hayate_Database_Abstract implements Hayate_Database_Interface
         $this->pword = $pword;
     }
 
+    abstract function connect();
+    abstract function setCharset();
+
+
     public function from($table)
     {
 
@@ -68,7 +72,22 @@ abstract class Hayate_Database_Abstract implements Hayate_Database_Interface
 
     }
 
-    public function find_all($offset = 0, $count = null)
+    public function findAll($offset = 0, $count = null)
+    {
+
+    }
+
+    public function query($query, $params)
+    {
+
+    }
+
+    public function insert($table, $fields, $values)
+    {
+
+    }
+
+    public function update($table, $fields, $values)
     {
 
     }
