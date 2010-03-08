@@ -43,12 +43,8 @@ $config['username'] = 'andrea';
 $config['password'] = 'donkey';
 
 /**
- * persistent database connections
- */
-$config['persistent'] = false;
-
-/**
  * connection charset encoding
+ * corrently supported on mysql,pgsql,sqlite,sqlite2
  */
 $config['charset'] = 'utf8';
 
@@ -57,3 +53,15 @@ $config['charset'] = 'utf8';
  */
 $config['object'] = true;
 
+/**
+ * persistent database connections
+ * only implemented when using mysql driver
+ */
+$config['persistent'] = false;
+
+/**
+ * buffered query, only works with mysql
+ * use with caution, as large queries can be
+ * very resource expensive
+ */
+$config['buffered'] = false;

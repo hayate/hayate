@@ -50,14 +50,12 @@ class Log
 
     protected static function write($type, $msg, $print_r)
     {
-	require_once 'Config.php';
 	$error_level = Config::instance()->get('error_level', 0);
 	if ($type == $error_level)
 	{
 	    $logdir = APPPATH.'logs/';
 	    if (! is_writable($logdir))
 	    {
-		require_once 'HayateException.php';
 		throw new HayateException(sprintf(_('"logs" directory "%s" is not writable.'), $logdir));
 	    }
 	    $filename = $logdir.'log-'.date('d-m-Y').'.log';

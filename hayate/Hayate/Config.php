@@ -40,13 +40,17 @@ class Config implements ArrayAccess
 
     public function get($name, $default = null, $slash = false)
     {
-        $namespace = 'hayate';
+        $namespace = 'config';
         if (false !== ($pos = strpos($name, '.'))) {
             $namespace = substr($name, 0, $pos);
             $name = str_replace($namespace.'.', '', $name);
         }
         if (array_key_exists($namespace, $this->data))
         {
+	    if ('*' == $name) 
+	    {
+		return $this->data[$namespace];
+	    }
             if (isset($this->data[$namespace][$name]))
             {
                 if ($slash && is_string($this->data[$namespace][$name]))
@@ -61,7 +65,7 @@ class Config implements ArrayAccess
 
     public function set($name, $value)
     {
-        $namespace = 'hayate';
+        $namespace = 'config';
         if (false !== ($pos = strpos($name, '.'))) {
             $namespace = substr($name, 0, $pos);
             $name = str_replace($namespace.'.', '', $name);
@@ -74,7 +78,7 @@ class Config implements ArrayAccess
     }
 
     /**
-     * this is only useful for the default namespace 'hayate'
+     * this is only useful for the default namespace 'config'
      */
     public function __get($name)
     {
@@ -82,7 +86,7 @@ class Config implements ArrayAccess
     }
 
     /**
-     * this is only useful for the default namespace 'hayate'
+     * this is only useful for the default namespace 'config'
      */
     public function __set($name, $value)
     {
@@ -91,7 +95,7 @@ class Config implements ArrayAccess
 
     public function __isset($name)
     {
-        $namespace = 'hayate';
+        $namespace = 'config';
         if (false !== ($pos = strpos($name, '.'))) {
             $namespace = substr($name, 0, $pos);
             $name = str_replace($namespace.'.', '', $name);
@@ -118,8 +122,7 @@ class Config implements ArrayAccess
             $this->data[$namespace] = new Registry($config, $mutable);
         }
         else {
-            require_once 'HayateException.php';
-            throw new HayateException(_('Config file could not be loaded.'));
+            throw new HayateException(sprintf(_('Config "%s" could not be loaded.'), $namespace));
         }
     }
 
@@ -128,7 +131,7 @@ class Config implements ArrayAccess
      */
     public function offsetExists($name)
     {
-        $namespace = 'hayate';
+        $namespace = 'config';
         if (false !== ($pos = strpos($name, '.'))) {
             $namespace = substr($name, 0, $pos);
             $name = str_replace($namespace.'.', '', $name);
@@ -163,7 +166,7 @@ class Config implements ArrayAccess
      */
     public function offsetUnset($name)
     {
-        $namespace = 'hayate';
+        $namespace = 'config';
         if (false !== ($pos = strpos($name, '.'))) {
             $namespace = substr($name, 0, $pos);
             $name = str_replace($namespace.'.', '', $name);

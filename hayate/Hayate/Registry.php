@@ -65,4 +65,12 @@ class Registry extends ArrayObject
         }
         parent::append($value);
     }
+
+    public function __isset($name)
+    {
+        if (array_key_exists($name, $this)) {
+            return (false === empty($this[$name]));
+        }
+        return false;
+    }
 }

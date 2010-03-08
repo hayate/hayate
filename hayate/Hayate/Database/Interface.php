@@ -22,15 +22,15 @@
  */
 interface Hayate_Database_Interface
 {
-    public function from($table);
-    public function where($field, $value = null);
-    public function join($table, $field, $value = null);
-    public function groupby($field);
-    public function orderby($field, $direction);
-    public function limit($offset, $count = null);
-    public function find();
-    public function findAll($offset = 0, $count = null);
-    public function query($query, $params);
-    public function insert($table, $fields, $values);
-    public function update($table, $fields, $values);
+    public function select($columns = '*');
+    public function from($tables);
+    public function set($field, $value = null);
+    public function update($table = null, array $set = null, array $where = null);
+    public function insert($table = null, array $set = null);
+    public function where($field, $value = null, $quote = true);
+    public function orwhere($field, $value = null, $quote = true);
+    public function groupby($groupby);
+    public function orderby($orderby, $direction = null);
+    public function get($table = null, $limit = null, $offset = null);
+    public function get_first($table = null);
 }

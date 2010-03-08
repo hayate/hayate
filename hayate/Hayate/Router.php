@@ -34,9 +34,7 @@ class Router
     protected function __construct()
     {
         $this->config = Config::instance();
-        if (isset($this->config->routes) && is_array($this->config->routes)) {
-            $this->routes = $this->config->routes;
-        }
+	$this->routes = $this->config->get('routes.*');
         $base_path = array();
         if (isset($this->config->base_path)) {
             $base_path = preg_split('|/|', $this->config->base_path, -1, PREG_SPLIT_NO_EMPTY);

@@ -24,3 +24,4 @@
  *
  * $config['author/(.*)'] = 'index/index/$1';
  */
+$config['author/(.*)'] = 'index/index/$1';

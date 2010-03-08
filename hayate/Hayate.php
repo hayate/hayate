@@ -108,10 +108,8 @@ final class Hayate
         {
             if ($file->isFile() && $file->isReadable())
             {
-                $filepath = $file->getPath().'/'.$file->getFilename();
-                $namespace = $file->getBasename('.php');
                 // the last parameter is false = this config can't be modified
-                $conf->load($namespace, $filepath, false);
+                $conf->load($file->getBasename('.php'), $file->getPathname(), false);
             }
         }
     }
