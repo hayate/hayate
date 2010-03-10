@@ -22,14 +22,38 @@
  */
 class HayateException extends Exception
 {
-    public function __construct($errstr = '', $errno = 0, $errfile = null, $errline = -1)
+    /**
+     * HayateExcetion
+     *
+     * @param string $message Error message
+     * @param int $code Error code or number
+     *
+     * This constructor also optionally accept and Exception object as
+     * the 3rd argument or $errfile (string) and $errline (int) as 3rd
+     * and 4th parameters
+     */
+    public function __construct($message = '', $code = 0)
     {
-        parent::__construct($errstr, $errno);
-        if (null !== $errfile) {
-            $this->file = $errfile;
-        }
-        if ($errline != -1) {
-            $this->line = $errline;
+        $argc = func_num_args();
+        switch ($argc)
+        {
+        case 0:
+            parent::__construct();
+            break;
+        case 1:
+            parent::__construct($message);
+            break;
+        case 2:
+            parent::__construct($message, $code);
+            break;
+        case 3:
+            $ex = func_get_arg(2);
+            parent::__construct($message, $code, $ex);
+            break;
+        case 4:
+            parent::__construct($message, $code);
+            $this->file = func_get_arg(2);
+            $this->line = func_get_arg(3);
         }
     }
 }

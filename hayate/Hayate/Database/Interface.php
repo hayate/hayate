@@ -27,8 +27,8 @@ interface Hayate_Database_Interface
     public function set($field, $value = null);
     public function update($table = null, array $set = null, array $where = null);
     public function insert($table = null, array $set = null);
-    public function where($field, $value = null, $quote = true);
-    public function orwhere($field, $value = null, $quote = true);
+    public function where($field, $value = null);
+    public function orwhere($field, $value = null);
     public function groupby($groupby);
     public function orderby($orderby, $direction = null);
     public function get($table = null, $limit = null, $offset = null);

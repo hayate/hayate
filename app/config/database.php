@@ -60,8 +60,7 @@ $config['object'] = true;
 $config['persistent'] = false;
 
 /**
- * buffered query, only works with mysql
- * use with caution, as large queries can be
- * very resource expensive
+ * buffered query, only works with mysql use with caution, as large
+ * queries can be resource expensive
  */
 $config['buffered'] = false;

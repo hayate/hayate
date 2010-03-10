@@ -27,55 +27,55 @@ class Log
     const HAYATE_LOG_INFO = 3;
 
     protected static $log_types = array(self::HAYATE_LOG_OFF => '',
-					self::HAYATE_LOG_ERROR => 'ERROR',
-					self::HAYATE_LOG_DEBUG => 'DEBUG',
-					self::HAYATE_LOG_INFO => 'INFO');
+                                        self::HAYATE_LOG_ERROR => 'ERROR',
+                                        self::HAYATE_LOG_DEBUG => 'DEBUG',
+                                        self::HAYATE_LOG_INFO => 'INFO');
 
     private function __construct() {}
 
-    public static function error($msg, $print_r = true)
+    public static function error($msg, $print_r = false)
     {
-	self::write(self::HAYATE_LOG_ERROR, $msg, $print_r);
+        self::write(self::HAYATE_LOG_ERROR, $msg, $print_r);
     }
 
-    public static function info($msg, $print_r = true)
+    public static function info($msg, $print_r = false)
     {
-	self::write(self::HAYATE_LOG_INFO, $msg, $print_r);
+        self::write(self::HAYATE_LOG_INFO, $msg, $print_r);
     }
 
-    public static function debug($msg, $print_r = true)
+    public static function debug($msg, $print_r = false)
     {
-	self::write(self::HAYATE_LOG_DEBUG, $msg, $print_r);
+        self::write(self::HAYATE_LOG_DEBUG, $msg, $print_r);
     }
 
     protected static function write($type, $msg, $print_r)
     {
-	$error_level = Config::instance()->get('error_level', 0);
-	if ($type == $error_level)
-	{
-	    $logdir = APPPATH.'logs/';
-	    if (! is_writable($logdir))
-	    {
-		throw new HayateException(sprintf(_('"logs" directory "%s" is not writable.'), $logdir));
-	    }
-	    $filename = $logdir.'log-'.date('d-m-Y').'.log';
-	    $logfile = new SplFileObject($filename, 'a');
-	    self::header($type, $logfile);
-	    if (true === $print_r) {
-		$msg = print_r($msg, true);
-	    }
-	    $logfile->fwrite($msg);
-	    self::footer($logfile);
-	}
+        $error_level = Config::instance()->get('error_level', 0);
+        if ($type == $error_level)
+        {
+            $logdir = APPPATH.'logs/';
+            if (! is_writable($logdir))
+            {
+                throw new HayateException(sprintf(_('"logs" directory "%s" is not writable.'), $logdir));
+            }
+            $filename = $logdir.'log-'.date('d-m-Y').'.log';
+            $logfile = new SplFileObject($filename, 'a');
+            self::header($type, $logfile);
+            if (true === $print_r) {
+                $msg = print_r($msg, true);
+            }
+            $logfile->fwrite($msg);
+            self::footer($logfile);
+        }
     }
 
     protected static function header($type, SplFileObject $logfile)
     {
-	$logfile->fwrite(self::$log_types[$type].' - '.date('r').' --> ');
+        $logfile->fwrite(self::$log_types[$type].' - '.date('r').' --> ');
     }
 
     protected static function footer(SplFileObject $logfile)
     {
-	$logfile->fwrite("\n");
+        $logfile->fwrite("\n");
     }
 }

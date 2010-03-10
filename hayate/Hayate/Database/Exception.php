@@ -20,4 +20,10 @@
  * @package Hayate_Database
  * @version 1.0
  */
-class Hayate_Database_Exception extends HayateException {}
+class Hayate_Database_Exception extends HayateException
+{
+    public function __construct(Exception $ex)
+    {
+        parent::__construct($ex->getMessage(), $ex->getCode(), $ex);
+    }
+}

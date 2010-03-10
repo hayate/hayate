@@ -41,7 +41,7 @@ $config['base_path'] = '/';
  * 2 = debug
  * 3 = info
  */
-$config['error_level'] = 1;
+$config['error_level'] = 3;
 
 /**
  * set to true, to protect against Cross Site Scripting attacks
