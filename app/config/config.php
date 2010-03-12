@@ -54,6 +54,11 @@ $config['xss_clean'] = true;
 $config['default_module'] = 'default';
 
 /**
+ * Internal charset, if in doupt UTF-8
+ */
+$config['charset'] = 'UTF-8';
+
+/**
  * Set view options,
  * current support options are "native" for php templates or "smarty"
  */

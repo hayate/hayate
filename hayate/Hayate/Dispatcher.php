@@ -42,7 +42,7 @@ class Dispatcher
         $config = Config::instance();
         $this->module = isset($config->default_module) ? $config->default_module : 'default';
         $this->modules_path = APPPATH.'modules/';
-	$this->route();
+        $this->route();
     }
 
     public static function instance()
@@ -55,27 +55,27 @@ class Dispatcher
 
     public function dispatch()
     {
-	$filepath = $this->modules_path.$this->module().'/controllers/'.$this->controller().'.php';
-	if (is_file($filepath) && is_readable($filepath))
-	{
-	    require_once $filepath;
-	    $classname = ucfirst($this->module).'_'.ucfirst($this->controller);
-	    $rfc = new ReflectionClass($classname);
-	    if ($rfc->isSubclassOf('Controller') && $rfc->isInstantiable())
-	    {
-		$controller = $rfc->newInstance();
-		$action = $rfc->hasMethod($this->action()) ? $rfc->getMethod($this->action()) : $rfc->getMethod('__call');
-		if ($action->isPublic() && (strpos($action->getName(), '_') !== 0)) {
-		    $action->invokeArgs($controller, $this->params());
-		}
-		else if ($action->getName() == '__call') {
-		    $action->invoke($controller, $this->action(), $this->params());
-		}
-	    }
-	}
-	else {
-	    throw new HayateException('Not Found', 404);
-	}
+        $filepath = $this->modules_path.$this->module().'/controllers/'.$this->controller().'.php';
+        if (is_file($filepath) && is_readable($filepath))
+        {
+            require_once $filepath;
+            $classname = ucfirst($this->module).'_'.ucfirst($this->controller);
+            $rfc = new ReflectionClass($classname);
+            if ($rfc->isSubclassOf('Controller') && $rfc->isInstantiable())
+            {
+                $controller = $rfc->newInstance();
+                $action = $rfc->hasMethod($this->action()) ? $rfc->getMethod($this->action()) : $rfc->getMethod('__call');
+                if ($action->isPublic() && (strpos($action->getName(), '_') !== 0)) {
+                    $action->invokeArgs($controller, $this->params());
+                }
+                else if ($action->getName() == '__call') {
+                    $action->invoke($controller, $this->action(), $this->params());
+                }
+            }
+        }
+        else {
+            throw new HayateException('Not Found', 404);
+        }
     }
 
     public function module($name = null)
@@ -104,16 +104,16 @@ class Dispatcher
 
     private function params()
     {
-	if (! is_array($this->params))
-	{
-	    $this->params = array();
-	}
-	return $this->params;
+        if (! is_array($this->params))
+        {
+            $this->params = array();
+        }
+        return $this->params;
     }
 
     protected function route()
     {
-	$segments = explode('/', $this->routed_uri);
+        $segments = explode('/', $this->routed_uri);
         $module = array_shift($segments);
         if (! empty($module))
         {
@@ -131,7 +131,7 @@ class Dispatcher
                 $action = array_shift($segments);
                 $this->action = empty($action) ? $this->action : $action;
             }
-	    $this->params = $segments;
+            $this->params = $segments;
         }
     }
 }

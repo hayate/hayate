@@ -33,8 +33,8 @@ class URI
         $this->current = $this->scheme().'://'.
             $this->hostname().'/'.$this->path().$this->query(true);
         $this->segments = preg_split('|/|', $this->path(), -1, PREG_SPLIT_NO_EMPTY);
-	// make sure all segments are lower case
-	$this->segments = array_map('mb_strtolower', $this->segments);
+        // make sure all segments are lower case
+        $this->segments = array_map('mb_strtolower', $this->segments);
     }
 
     public static function instance()
@@ -62,11 +62,11 @@ class URI
             return $this->segments[$seg];
         }
         else if (is_string($seg))
-	{
+        {
             while (false !== ($param = current($this->segments)))
-	    {
+            {
                 if ($param == $seg)
-		{
+                {
                     if (false !== ($ans = next($this->segments))) {
                         reset($this->segments);
                         return $ans;
@@ -86,7 +86,17 @@ class URI
 
     public function path()
     {
-        return isset($_SERVER['REQUEST_URI']) ? trim($_SERVER['REQUEST_URI'], '/') : '';
+        $path = '';
+        switch (true)
+        {
+        case isset($_SERVER['PATH_INFO']):
+            $path = $_SERVER['PATH_INFO'];
+            break;
+        case isset($_SERVER['ORIG_PATH_INFO']):
+            $path = $_SERVER['ORIG_PATH_INFO'];
+            break;
+        }
+        return trim($path, '/');
     }
 
     public function query($question_mark = false)
@@ -96,7 +106,7 @@ class URI
     }
 
     /**
-     * TODO: not so sure about the port issue, needs to be verified
+     * TODO: check port issue
      */
     public function hostname()
     {

@@ -48,6 +48,9 @@ final class Hayate
         $this->load_configs();
         // add modules include paths
         $this->add_modules_paths();
+
+        // set internal encoding
+        mb_internal_encoding(Config::instance()->get('charset', 'UTF-8'));
     }
 
     public static function instance()

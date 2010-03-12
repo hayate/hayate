@@ -51,7 +51,7 @@ class Log
     protected static function write($type, $msg, $print_r)
     {
         $error_level = Config::instance()->get('error_level', 0);
-        if ($type == $error_level)
+        if ($type <= $error_level)
         {
             $logdir = APPPATH.'logs/';
             if (! is_writable($logdir))

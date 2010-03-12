@@ -6,6 +6,7 @@ class Default_Index extends Controller
 
     public function index($var = null)
     {
+        //Log::error(__METHOD__);
         if (null !== $var)
         {
             echo '<h3>'.$var.'</h3>';
@@ -14,30 +15,17 @@ class Default_Index extends Controller
             echo '<h3>'.__METHOD__.'</h3>';
         }
 
-        $name = '%s%"';
+        //Log::error($_POST, true);
+        echo print_r($_POST, true);
+        echo print_r($_GET, true);
+        echo print_r($_SERVER['REQUEST_METHOD'], true);
 
-        $db = Database::instance();
-        $ret = $db->select(array('name','surname'))
-            ->from('base')
-            ->where('name', $name)
-            ->get();
+        $put = Input::instance()->put();
 
-        var_dump($ret);
+        echo print_r($put, true);
 
-
-        $ret = $db->set('surname', 'belvedere')
-            ->where(array('name' => 'simona'))
-            ->from('base')
-            ->update();
-
-        var_dump($ret);
-
-        $ret = $db->select(array('name','surname'))
-            ->from('base')
-            ->where('name', 'simona')
-            ->get();
-
-        var_dump($ret);
+        //echo print_r($put['city'], true);
+        //echo print_r($put['country'], true);
 
         /*
         $view = new View($this->template);
