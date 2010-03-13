@@ -160,10 +160,34 @@ class Database implements Hayate_Database_Interface
         return $this;
     }
 
-    public function join($table, array $on)
+    /**
+     * Join
+     *
+     * @param string $table Table to join
+     * @param array $on fields to join on
+     * @param string $type Type of JOIN i.e. INNER, LEFT, RIGHT etc.
+     * @param string $opt AND or OR for multiple fields join
+     *
+     * @return Database
+     */
+    public function join($table, array $on, $type = 'INNER', $opt = 'AND')
     {
-        throw new Hayate_Database_Exception(sprintf(_('%s not yet implemented'), __METHOD__));
+        $join = '';
+        foreach ($on as $c1 => $c2)
+        {
+            if (mb_strlen($join) > 0) {
+                $join .= ' '.trim($opt).' ';
+            }
+            if (! $this->has_operator($c1))
+            {
+                $c1 .= '=';
+            }
+            $join .= $c1.$c2;
+        }
+        $this->join[] = trim($type).' JOIN '.trim($table).' ON '.$join;
+        return $this;
     }
+
 
     /**
      * Set is used for building UPDATEs and INSERTs queries
@@ -412,7 +436,7 @@ class Database implements Hayate_Database_Interface
         }
     }
 
-    public function getQuery()
+    public function getLastQuery()
     {
         return $this->query;
     }
@@ -425,6 +449,7 @@ class Database implements Hayate_Database_Interface
         $sql = ($this->distinct === true) ? 'SELECT DISTINCT ' : 'SELECT ';
         $sql .= (count($this->select) > 0) ? implode(',', $this->select) : '*';
         $sql .= (count($this->from) > 0) ? ' FROM '.implode(',', $this->from) : '';
+        $sql .= (count($this->join) > 0) ? ' '.implode(' ', $this->join) : '';
         $sql .= (count($this->where) > 0) ? ' WHERE '.implode(' ', $this->where) : '';
         $sql .= (count($this->groupby) > 0) ? ' GROUP BY '.implode(',', $this->groupby) : '';
         $sql .= (count($this->orderby) > 0) ? ' ORDER BY '.implode(', ', $this->orderby) : '';

@@ -15,17 +15,12 @@ class Default_Index extends Controller
             echo '<h3>'.__METHOD__.'</h3>';
         }
 
-        //Log::error($_POST, true);
-        echo print_r($_POST, true);
-        echo print_r($_GET, true);
-        echo print_r($_SERVER['REQUEST_METHOD'], true);
+        $db = Database::instance();
+        $ret = $db->from('relations')
+            ->join('base', array('relations.id' => 'base.relation_id'), 'RIGHT OUTER')
+            ->where('relation', 'nipote')->get();
 
-        $put = Input::instance()->put();
-
-        echo print_r($put, true);
-
-        //echo print_r($put['city'], true);
-        //echo print_r($put['country'], true);
+        var_dump($ret);
 
         /*
         $view = new View($this->template);

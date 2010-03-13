@@ -97,8 +97,10 @@ final class Hayate
     public function error_handler($errno, $errstr, $errfile = '', $errline = 0)
     {
         Log::error($errstr);
-        //require_once 'HayateException.php';
-        throw new HayateException($errstr, $errno, $errfile, $errline);
+        $ex = new HayateException($errstr, $errno);
+        $ex->setFile($errfile);
+        $ex->setLine($errline);
+        throw $ex;
     }
 
     protected function load_configs()

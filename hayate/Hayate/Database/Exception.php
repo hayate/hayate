@@ -22,8 +22,8 @@
  */
 class Hayate_Database_Exception extends HayateException
 {
-    public function __construct(Exception $ex)
+    public function __construct($message = '', $code = 0, Exception $prev = null)
     {
-        parent::__construct($ex->getMessage(), $ex->getCode(), $ex);
+        parent::__construct($message, $code, $prev);
     }
 }

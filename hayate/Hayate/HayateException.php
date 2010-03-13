@@ -32,28 +32,30 @@ class HayateException extends Exception
      * the 3rd argument or $errfile (string) and $errline (int) as 3rd
      * and 4th parameters
      */
-    public function __construct($message = '', $code = 0)
+    public function __construct($message = '', $code = 0, Exception $prev = null)
     {
-        $argc = func_num_args();
-        switch ($argc)
+        if ($message instanceof Exception)
         {
-        case 0:
-            parent::__construct();
-            break;
-        case 1:
-            parent::__construct($message);
-            break;
-        case 2:
-            parent::__construct($message, $code);
-            break;
-        case 3:
-            $ex = func_get_arg(2);
-            parent::__construct($message, $code, $ex);
-            break;
-        case 4:
-            parent::__construct($message, $code);
-            $this->file = func_get_arg(2);
-            $this->line = func_get_arg(3);
+            parent::__construct($message->getMessage(), $message->getCode());
         }
+        else {
+            parent::__construct($msg, $code);
+            if ($prev instanceof Exception)
+            {
+                $this->setFile($prev->getFile());
+                $this->setLine($prev->getLine());
+            }
+        }
+
+    }
+
+    public function setFile($file)
+    {
+        $this->file = $file;
+    }
+
+    public function setLine($line)
+    {
+        $this->line = $line;
     }
 }
