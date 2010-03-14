@@ -17,26 +17,13 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
- * @package Hayate
+ * @package Hayate_ORM
  * @version 1.0
  */
-class Database
+class Hayate_ORM_Exception extends Hayate_Database_Exception
 {
-    protected static $db = array();
-
-    private function __construct() {}
-
-    public static function instance($name = 'default')
+    public function __construct($message = '', $code = 0, Exception $prev = null)
     {
-        if (isset(self::$db[$name]))
-        {
-            return self::$db[$name];
-        }
-        $config = Config::instance()->get('database.'.$name, null);
-        if (null === $config) {
-            throw new Hayate_Database_Exception(sprintf(_('Database config "%s" not found.'), $name));
-        }
-        self::$db[$name] = new Hayate_Database_Pdo(new Registry($config));
-        return self::$db[$name];
+        parent::__construct($message, $code, $prev);
     }
 }

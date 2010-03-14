@@ -20,47 +20,41 @@
 /**
  * Set database options
  *
+ * Hayate supports connections to multiple databases
+ * each connection setting should have the format:
+ * $config['name_of_connection'] = array('dsn' => ....);
+ *
+ * default is used each time the database object is instantiated
+ * without specifying a connection name
+ *
  * Hayate usese PDO (PHP Data Objects) as database abstraction layer
  * this means that as long as the required pdo database driver is
  * installed all is required to switch database type is change the dsn
- * record below
- * i.e.
- * mysql  - mysql:host=127.0.0.1;port=3306;dbname=hayate
- * pgsql  - pgsql:host=127.0.0.1 port=5432 dbname=hayate
- * oracle - oci:dbname=//127.0.0.1:1521/hayate
- * sqlite - sqlite:/path/to/hayate.db or sqlite::memory
+ * records
  */
-$config['dsn'] = 'mysql:host=127.0.0.1;dbname=hayate;';
 
-/**
- * username
- */
-$config['username'] = 'andrea';
-
-/**
- * password
- */
-$config['password'] = 'donkey';
-
-/**
- * connection charset encoding
- * corrently supported on mysql,pgsql,sqlite,sqlite2
- */
-$config['charset'] = 'utf8';
-
-/**
- * return query as stdClass if true associative array if false
- */
-$config['object'] = true;
-
-/**
- * persistent database connections
- * only implemented when using mysql driver
- */
-$config['persistent'] = false;
-
-/**
- * buffered query, only works with mysql use with caution, as large
- * queries can be resource expensive
- */
-$config['buffered'] = false;
+// dsn examples:
+// mysql  - mysql:host=127.0.0.1;port=3306;dbname=hayate
+// pgsql  - pgsql:host=127.0.0.1 port=5432 dbname=hayate
+// oracle - oci:dbname=//127.0.0.1:1521/hayate
+// qlite - sqlite:/path/to/hayate.db or sqlite::memory
+$config['default'] = array('dsn' => 'mysql:host=127.0.0.1;dbname=hayate;',
+                           // username
+                           'username' => 'andrea',
+                           // password
+                           'password'  => 'donkey',
+                           // connection charset encoding
+                           // corrently supported on
+                           // mysql,pgsql,sqlite,sqlite2
+                           'charset' => 'utf8',
+                           // return query as stdClass if true or
+                           // associative array if false
+                           'object' => true,
+                           // persistent database connections
+                           // only implemented when using mysql driver
+                           'persistent' => false,
+                           // buffered query, only works with mysql
+                           // use with caution, as large queries can
+                           // be resource expensive
+                           'buffered' => true
+    );

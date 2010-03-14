@@ -47,10 +47,10 @@ class Config implements ArrayAccess
         }
         if (array_key_exists($namespace, $this->data))
         {
-	    if ('*' == $name) 
-	    {
-		return $this->data[$namespace];
-	    }
+            if ('*' == $name)
+            {
+                return $this->data[$namespace];
+            }
             if (isset($this->data[$namespace][$name]))
             {
                 if ($slash && is_string($this->data[$namespace][$name]))
@@ -108,8 +108,11 @@ class Config implements ArrayAccess
     }
 
     /**
-     * @param $namespace String The namespace
-     * @param $conf String|array If String then is a path to a config file
+     * @param string $namespace The namespace
+     * @param string|array $conf If String then is a path to a config
+     * file
+     * @param bool $mutable If true config object paramters values can
+     * be changed, if false object in immutable
      */
     public function load($namespace, $conf, $mutable = false)
     {
