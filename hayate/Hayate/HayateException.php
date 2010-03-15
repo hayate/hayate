@@ -39,6 +39,7 @@ class HayateException extends Exception
             parent::__construct($message->getMessage(), $message->getCode());
             $this->setFile($message->getFile());
             $this->setLine($message->getLine());
+            Log::error($message->getMessage());
         }
         else {
             parent::__construct($message, $code);
@@ -47,8 +48,8 @@ class HayateException extends Exception
                 $this->setFile($prev->getFile());
                 $this->setLine($prev->getLine());
             }
+            Log::error($message);
         }
-
     }
 
     public function setFile($file)

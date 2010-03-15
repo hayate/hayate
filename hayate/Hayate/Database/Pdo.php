@@ -49,17 +49,7 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
         $this->conn = null;
         $this->fetch_mode = (isset($this->config->object) && (true === $this->config->object)) ? PDO::FETCH_OBJ : PDO::FETCH_ASSOC;
         $this->query = '';
-
-        $this->select = array();
-        $this->from = array();
-        $this->where = array();
-        $this->set = array();
-        $this->distinct = false;
-        $this->limit = null;
-        $this->offset = null;
-        $this->groupby = array();
-        $this->orderby = array();
-        $this->join = array();
+        $this->reset();
     }
 
     public function __destruct()
@@ -72,8 +62,12 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
     /**
      * @param int $mode One of the predefined PDO::FETCH_* modes
      */
-    public function fetchMode($mode)
+    public function fetchMode($mode = null)
     {
+        if (null === $mode)
+        {
+            return $this->fetch_mode;
+        }
         $this->fetch_mode = $mode;
     }
 
@@ -254,7 +248,24 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
         if (empty($this->set)) {
             throw new Hayate_Database_Exception(_sprintf(("Missing set in: %s"), __METHOD__));
         }
-        $sql = "INSERT INTO ".$table.' ('.implode(', ', array_keys($this->set)).') VALUES ('.implode(', ', array_values($this->set)).')';
+        $sql = 'INSERT INTO '.$table.' ('.implode(', ', array_keys($this->set)).') VALUES ('.implode(', ', array_values($this->set)).')';
+        return $this->query($sql);
+    }
+
+    public function delete($table = null, array $where = array())
+    {
+        if (null === $table) {
+            if (! isset($this->from[0])) {
+                throw new Hayate_Database_Exception(sprintf(_('Missing table name in: %s'), __METHOD__));
+            }
+            $table = $this->from[0];
+        }
+        $sql = 'DELETE FROM '.$table;
+        if (count($where))
+        {
+            $this->where($where);
+            $sql .= ' WHERE '.implode(' ', $this->where);
+        }
         return $this->query($sql);
     }
 
@@ -297,6 +308,11 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
             return $this->orderby(array($orderby => $direction));
         }
         return $this;
+    }
+
+    public function distinct($value = true)
+    {
+        $this->distinct = (bool)$value;
     }
 
     public function get($table = null, $limit = null, $offset = null)

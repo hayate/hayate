@@ -30,6 +30,7 @@ final class Hayate
         $include_path .= dirname(__FILE__).PATH_SEPARATOR;
         $include_path .= dirname(__FILE__).'/Hayate'.PATH_SEPARATOR;
         $include_path .= APPPATH;
+        $include_path .= APPPATH.'libs'.PATH_SEPARATOR;
         set_include_path($include_path);
 
         // register error handler
@@ -80,7 +81,9 @@ final class Hayate
         }
         else {
             $segs = explode('_', $classname);
-            if (is_array($segs)) {
+            if (is_array($segs))
+            {
+                //$tip = array_shift($segs);
                 switch ($segs[0]) {
                 case 'Hayate':
                     $filename = HAYATE.implode('/', $segs).'.php';
@@ -96,7 +99,6 @@ final class Hayate
 
     public function error_handler($errno, $errstr, $errfile = '', $errline = 0)
     {
-        Log::error($errstr);
         $ex = new HayateException($errstr, $errno);
         $ex->setFile($errfile);
         $ex->setLine($errline);

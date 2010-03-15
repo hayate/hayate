@@ -15,12 +15,9 @@ class Default_Index extends Controller
             echo '<h3>'.__METHOD__.'</h3>';
         }
 
-        $db = Database::instance();
-        $ret = $db->from('relations')
-            ->join('base', array('relations.id' => 'base.relation_id'), 'RIGHT OUTER')
-            ->where('relation', 'nipote')->get();
 
-        var_dump($ret);
+        $orm = ORM::factory('base');
+        var_dump($orm);
 
         /*
         $view = new View($this->template);
