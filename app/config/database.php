@@ -37,7 +37,7 @@
 // mysql  - mysql:host=127.0.0.1;port=3306;dbname=hayate
 // pgsql  - pgsql:host=127.0.0.1 port=5432 dbname=hayate
 // oracle - oci:dbname=//127.0.0.1:1521/hayate
-// qlite - sqlite:/path/to/hayate.db or sqlite::memory
+// sqlite - sqlite:/path/to/hayate.db or sqlite::memory
 $config['default'] = array('dsn' => 'mysql:host=127.0.0.1;dbname=hayate;',
                            // username
                            'username' => 'andrea',
@@ -47,7 +47,7 @@ $config['default'] = array('dsn' => 'mysql:host=127.0.0.1;dbname=hayate;',
                            // corrently supported on
                            // mysql,pgsql,sqlite,sqlite2
                            'charset' => 'utf8',
-                           // return query as stdClass if true or
+                           // return rows as stdClass if true or
                            // associative array if false
                            'object' => true,
                            // persistent database connections

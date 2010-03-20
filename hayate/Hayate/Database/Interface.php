@@ -31,6 +31,6 @@ interface Hayate_Database_Interface
     public function orwhere($field, $value = null);
     public function groupby($groupby);
     public function orderby($orderby, $direction = null);
-    public function get($table = null, $limit = null, $offset = null);
-    public function get_first($table = null);
+    public function get_all($table = null, $model = null, $limit = null, $offset = null);
+    public function get($table = null, $model = null);
 }

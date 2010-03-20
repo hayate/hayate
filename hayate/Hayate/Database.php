@@ -26,6 +26,18 @@ class Database
 
     private function __construct() {}
 
+    public function __destruct()
+    {
+        foreach (self::$db as &$pdo)
+        {
+            if ($pdo instanceof Hayate_Database_Pdo)
+            {
+                Log::info('Closing db connection.');
+                $pdo = null;
+            }
+        }
+    }
+
     public static function instance($name = 'default')
     {
         if (isset(self::$db[$name]))

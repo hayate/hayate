@@ -20,12 +20,10 @@
  * @package Hayate_Database
  * @version 1.0
  */
-class Hayate_Database_Pdo implements Hayate_Database_Interface
+class Hayate_Database_Pdo extends PDO implements Hayate_Database_Interface
 {
-    protected $config;
-    protected $conn;
     protected $fecth_mode;
-    protected $query;
+    protected $last_query;
 
     // query builder
     protected $select;
@@ -42,33 +40,45 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
 
     public function __construct(Registry $config)
     {
-        $this->config = $config;
-        if (null === $this->config) {
-            throw new Hayate_Database_Exception(_('Missing database configuration.'));
-        }
-        $this->conn = null;
-        $this->fetch_mode = (isset($this->config->object) && (true === $this->config->object)) ? PDO::FETCH_OBJ : PDO::FETCH_ASSOC;
-        $this->query = '';
+        $this->fetch_mode = (isset($config->object) && (true === $config->object)) ? PDO::FETCH_OBJ : PDO::FETCH_ASSOC;
         $this->reset();
-    }
 
-    public function __destruct()
-    {
-        if (isset($this->conn)) {
-            $this->conn = null;
+        $params = array();
+        if (false !== stripos($config->dsn, 'mysql')) {
+            $params[PDO::ATTR_PERSISTENT] = (true === $config->persistent) ? true : false;
+            $params[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = (true === $config->buffered) ? true : false;
         }
-    }
+        try {
+            parent::__construct($config->dsn,$config->username,$config->password,$params);
 
-    /**
-     * @param int $mode One of the predefined PDO::FETCH_* modes
-     */
-    public function fetchMode($mode = null)
-    {
-        if (null === $mode)
-        {
-            return $this->fetch_mode;
+            $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            if (isset($config->charset))
+            {
+                $driver = $this->getAttribute(PDO::ATTR_DRIVER_NAME);
+                switch ($driver)
+                {
+                case 'mysql':
+                case 'pgsql':
+                    $stmt = $this->prepare('SET NAMES ?');
+                break;
+                case 'sqlite':
+                case 'sqlite2':
+                    $stmt = $this->prepare('PRAGMA encoding = ?');
+                break;
+                }
+            }
+            if (isset($stmt)) {
+                $stmt->execute(array($config->charset));
+            }
         }
-        $this->fetch_mode = $mode;
+        catch (PDOException $ex) {
+            Log::error($ex->errorInfo, true);
+            throw new Hayate_Database_Exception($ex);
+        }
+        catch (Exception $ex) {
+            Log::error($ex->getMessage());
+            throw new Hayate_Database_Exception($ex);
+        }
     }
 
     /**
@@ -208,6 +218,8 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
      * @param string $table Name of the table
      * @param array $set key/value pairs of fields to set
      * @param array $where The where clause i.e. array('field' => 'value')
+     *
+     * @return int Returns the number of affected rows
      */
     public function update($table = null, array $set = null, array $where = null)
     {
@@ -231,9 +243,17 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
             $sets[] = "{$key}={$val}";
         }
         $sql = "UPDATE ".$table." SET ".implode(', ', $sets)." WHERE ".implode(' ', $this->where);
-        return $this->query($sql);
+        return $this->exec($sql);
     }
 
+    /**
+     * Execute an insert
+     *
+     * @param string $table The table name
+     * @param array $set associative array of columns and values to insert
+     *
+     * @return int Returns the number of affected rows
+     */
     public function insert($table = null, array $set = null)
     {
         if (null === $table) {
@@ -249,9 +269,17 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
             throw new Hayate_Database_Exception(_sprintf(("Missing set in: %s"), __METHOD__));
         }
         $sql = 'INSERT INTO '.$table.' ('.implode(', ', array_keys($this->set)).') VALUES ('.implode(', ', array_values($this->set)).')';
-        return $this->query($sql);
+        return $this->exec($sql);
     }
 
+    /**
+     * Execute a delete
+     *
+     * @param string $table The table name
+     * @param array $where Key/Value pair identifying the rows to delete
+     *
+     * @return int Returns the number of affected rows
+     */
     public function delete($table = null, array $where = array())
     {
         if (null === $table) {
@@ -266,7 +294,7 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
             $this->where($where);
             $sql .= ' WHERE '.implode(' ', $this->where);
         }
-        return $this->query($sql);
+        return $this->exec($sql);
     }
 
     public function where($field, $value = null)
@@ -315,7 +343,7 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
         $this->distinct = (bool)$value;
     }
 
-    public function get($table = null, $limit = null, $offset = null)
+    public function get_all($table = null, $model = null, $limit = null, $offset = null)
     {
         if (! empty($table) && is_string($table)) {
             $this->from($table);
@@ -327,29 +355,20 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
             $this->offset = $offset;
         }
         $sql = $this->compile_select();
-        return $this->query($sql);
+        return $this->execute($sql, array(), $model);
     }
 
-    public function get_first($table = null)
+    public function get($table = null, $model = null)
     {
-        return $this->get($table, 1, 0)->current();
-    }
-
-    /**
-     * Prepare an sql query
-     *
-     *
-     * @param string $query The query to prepare i.e. SELECT x FROM y WHERE z=?;
-     *
-     * @return PDOStatement A prepared PDOStatement object
-     */
-    public function prepare($query)
-    {
-        try {
-            return $this->connect()->prepare($query);
-        }
-        catch (PDOException $ex) {
-            throw new Hayate_Database_Exception($ex);
+        $stm = $this->get_all($table, $model, 1, 0);
+        switch (true)
+        {
+        case is_string($model):
+            return $stm->fetch(PDO::FETCH_CLASS);
+        case ($model instanceof ORM):
+            return $stm->fetch(PDO::FETCH_INTO);
+        default:
+            return $stm->fetch($this->fetch_mode);
         }
     }
 
@@ -359,8 +378,7 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
      *
      * @param string $query An sql query, optionally with place holders i.e. ... VALUES (?,?,?)
      * @param array $values If not empty values are going to be interpolate into the query
-     * @param PDOStatement $stm If this parameter is not null it is
-     * assumed that a query is already prepared
+     * @param ORM|string $model If not null must be a model classname or model object
      *
      * @return int|array If the query was a DELETE, INSERT, or UPDATE
      * the number of affected rows is returned, for SELECT query an
@@ -368,14 +386,12 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
      * developers should be aware that the whole result set is going
      * to be hold in memory
      */
-    public function query($query, array $values = array(), PDOStatement $stm = null)
+    public function execute($query, array $values = array(), $model = null)
     {
         try {
             if (count($values) > 0)
             {
-                if (null === $stm) {
-                    $stm = $this->prepare($query);
-                }
+                $stm = $this->prepare($query);
                 $i = 1;
                 foreach ($values as $value)
                 {
@@ -397,16 +413,37 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
                         $stm->bindParam($i++, $value);
                     }
                 }
+                switch (true)
+                {
+                case is_string($model):
+                    $stm->setFetchMode(PDO::FETCH_CLASS, $model, array());
+                    break;
+                case ($model instanceof ORM):
+                    $stm->setFetchMode(PDO::FETCH_INTO, $model);
+                    break;
+                default:
+                    $stm->setFetchMode($this->fetch_mode);
+                }
                 $stm->execute();
             }
             else {
-                $stm = $this->connect()->query($query);
+                $stm = $this->query($query);
+                switch (true)
+                {
+                case is_string($model):
+                    $stm->setFetchMode(PDO::FETCH_CLASS, $model, array());
+                    break;
+                case ($model instanceof ORM):
+                    $stm->setFetchMode(PDO::FETCH_INTO, $model);
+                    break;
+                default:
+                    $stm->setFetchMode($this->fetch_mode);
+                }
             }
-
             // store the query string
-            $this->query = $stm->queryString;
+            $this->last_query = $stm->queryString;
 
-            // log the query (info level only)
+            // log the query
             Log::info($stm->queryString);
 
             // reset query builder's properties after each query
@@ -416,7 +453,7 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
             {
                 return $stm->rowCount();
             }
-            return new Hayate_Database_Iterator($stm, $this->fetch_mode);
+            return $stm;
         }
         catch (PDOException $ex) {
             throw new Hayate_Database_Exception($ex);
@@ -426,26 +463,26 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
         }
     }
 
-    public function quote($value)
+    public function quote($value, $parameter_type = PDO::PARAM_STR)
     {
         switch (true)
         {
         case is_bool($value):
-            return $this->connect()->quote($value, PDO::PARAM_BOOL);
+            return parent::quote($value, PDO::PARAM_BOOL);
         case is_null($value):
-            return $this->connect()->quote($value, PDO::PARAM_NULL);
+            return parent::quote($value, PDO::PARAM_NULL);
         case is_int($value):
-            return $this->connect()->quote($value, PDO::PARAM_INT);
+            return parent::quote($value, PDO::PARAM_INT);
         case is_string($value):
-            return $this->connect()->quote($value, PDO::PARAM_STR);
+            return parent::quote($value, PDO::PARAM_STR);
         default:
-            return $this->connect()->quote($value);
+            return parent::quote($value, $parameter_type);
         }
     }
 
-    public function getLastQuery()
+    public function last_query()
     {
-        return $this->query;
+        return $this->last_query;
     }
 
     /**
@@ -517,50 +554,5 @@ class Hayate_Database_Pdo implements Hayate_Database_Interface
     protected function has_operator($opt)
     {
         return (bool)preg_match('/[<>!=]|\sIS(?:\s+NOT\s+)?|BETWEEN/i', trim($opt));
-    }
-
-    protected function connect()
-    {
-        if (null === $this->conn) {
-            $params = array();
-            if (false !== strpos($this->config->dsn, 'mysql')) {
-                $params[PDO::ATTR_PERSISTENT] = (true === $this->config->persistent) ? true : false;
-                $params[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = (true === $this->config->buffered) ? true : false;
-            }
-            try {
-                $this->conn = new PDO($this->config->dsn,
-                                      $this->config->username,
-                                      $this->config->password,
-                                      $params);
-                $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                if (isset($this->config->charset))
-                {
-                    $driver = $this->conn->getAttribute(PDO::ATTR_DRIVER_NAME);
-                    switch ($driver)
-                    {
-                    case 'mysql':
-                    case 'pgsql':
-                        $stmt = $this->conn->prepare('SET NAMES ?');
-                        break;
-                    case 'sqlite':
-                    case 'sqlite2':
-                        $stmt = $this->conn->prepare('PRAGMA encoding = ?');
-                        break;
-                    }
-                }
-                if (isset($stmt)) {
-                    $ans = $stmt->execute(array($this->config->charset));
-                }
-            }
-            catch (PDOException $ex) {
-                Log::error($ex->errorInfo, true);
-                throw new Hayate_Database_Exception($ex);
-            }
-            catch (Exception $ex) {
-                Log::error($ex->getMessage());
-                throw new Hayate_Database_Exception($ex);
-            }
-        }
-        return $this->conn;
     }
 }

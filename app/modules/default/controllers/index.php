@@ -16,8 +16,10 @@ class Default_Index extends Controller
         }
 
 
-        $orm = ORM::factory('base');
-        var_dump($orm);
+        $db = Database::instance();
+        $ans = $db->get('base');
+        var_dump($ans);
+
 
         /*
         $view = new View($this->template);
