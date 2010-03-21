@@ -130,4 +130,9 @@ class URI
         }
         return 'http';
     }
+
+    public function __toString()
+    {
+        return $this->current;
+    }
 }

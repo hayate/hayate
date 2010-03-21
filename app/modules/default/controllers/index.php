@@ -6,7 +6,6 @@ class Default_Index extends Controller
 
     public function index($var = null)
     {
-        //Log::error(__METHOD__);
         if (null !== $var)
         {
             echo '<h3>'.$var.'</h3>';
@@ -16,8 +15,9 @@ class Default_Index extends Controller
         }
 
 
+        $base = ORM::factory('base');
         $db = Database::instance();
-        $ans = $db->get('base');
+        $ans = $db->get_all('base', 1);
         var_dump($ans);
 
 

@@ -485,6 +485,21 @@ class Hayate_Database_Pdo extends PDO implements Hayate_Database_Interface
         return $this->last_query;
     }
 
+    public function lastInsertId($name = null)
+    {
+        if (is_null($name))
+        {
+            $driver = $this->getAttribute(PDO::ATTR_DRIVER_NAME);
+            if (strcasecmp($driver, 'pgsql') == 0)
+            {
+                $stm = $this->query('SELECT LASTVAL() AS last_id');
+                $last_id = $stm->fetch(PDO::FETCH_ASSOC);
+                return $last_id['last_id'];
+            }
+        }
+        return parent::lastInsertId($name);
+    }
+
     /**
      * This is called by the "get" method
      */

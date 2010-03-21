@@ -1,5 +1,6 @@
 <?php
-class Base_Model extends Hayate_ORM
+
+class Base_Model extends ORM
 {
-    
+
 }
