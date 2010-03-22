@@ -29,7 +29,7 @@ final class Hayate
         $include_path = get_include_path().PATH_SEPARATOR;
         $include_path .= dirname(__FILE__).PATH_SEPARATOR;
         $include_path .= dirname(__FILE__).'/Hayate'.PATH_SEPARATOR;
-        $include_path .= APPPATH;
+        $include_path .= APPPATH.PATH_SEPARATOR;
         $include_path .= APPPATH.'libs'.PATH_SEPARATOR;
         set_include_path($include_path);
 
@@ -83,14 +83,18 @@ final class Hayate
             $segs = explode('_', $classname);
             if (is_array($segs))
             {
-                //$tip = array_shift($segs);
                 switch ($segs[0]) {
                 case 'Hayate':
                     $filename = HAYATE.implode('/', $segs).'.php';
                     break;
+                case 'Model':
+                    array_shift($segs);
+                    $filename = self::find_file('models', implode('/', $segs));
+                    break;
                 }
             }
         }
+
         if (isset($filename) && is_file($filename) && is_readable($filename))
         {
             require_once $filename;
@@ -105,7 +109,7 @@ final class Hayate
         throw $ex;
     }
 
-    protected function load_configs()
+    private function load_configs()
     {
         $conf = Config::instance();
         $path = APPPATH.'config/';
@@ -121,7 +125,30 @@ final class Hayate
         }
     }
 
-    protected function add_modules_paths()
+    /**
+     * @param string $type One of the known directories within app/modules
+     */
+    private static function find_file($dirname, $filename)
+    {
+        $config = Config::instance();
+        $modules = $config->get('modules', array());
+        $modules[] = $config->get('default_module', 'default');
+
+        foreach ($modules as $module)
+        {
+            $filepath = APPPATH .'modules/'.$module.'/'.$dirname.'/'.$filename.'.php';
+            if (is_file($filepath) && is_readable($filepath))
+            {
+                return $filepath;
+            }
+        }
+        return $dirname.'/'.$filename.'.php';
+    }
+
+    /**
+     * TODO: maybe get rid of this method
+     */
+    private function add_modules_paths()
     {
         $config = Config::instance();
         $modules = $config->get('modules', array());
@@ -135,7 +162,7 @@ final class Hayate
             {
                 if ($file->isDir() && $file->isReadable())
                 {
-                    $include_path .= APPPATH.'modules/'.$module.'/'.$file->getFilename().PATH_SEPARATOR;
+                    $include_path .= APPPATH.'modules/'.$module.'/'.$file->getFilename().'/'.PATH_SEPARATOR;
                 }
             }
         }

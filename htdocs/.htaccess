@@ -1,9 +1,13 @@
+# Turn on rewriting engine
 RewriteEngine On
 
-RewriteCond %{REQUEST_FILENAME} -s [OR]
-RewriteCond %{REQUEST_FILENAME} -l [OR]
-RewriteCond %{REQUEST_FILENAME} -d
+# The document root
+RewriteBase /
 
-RewriteRule ^.*$ - [NC,L]
-RewriteRule ^.*$ /index.php [NC,L]
+# Don't apply to existing symbolic links, files or directories
+RewriteCond %{REQUEST_FILENAME} !-l
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 
+# Rewrite all after index.php/
+RewriteRule .* index.php/$0 [PT,L]

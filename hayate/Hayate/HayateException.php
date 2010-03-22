@@ -36,7 +36,7 @@ class HayateException extends Exception
     {
         if ($message instanceof Exception)
         {
-            parent::__construct($message->getMessage(), $message->getCode());
+            parent::__construct($message->getMessage(), (int)$message->getCode());
             $this->setFile($message->getFile());
             $this->setLine($message->getLine());
             Log::error($message->getMessage());

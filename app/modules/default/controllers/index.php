@@ -14,12 +14,15 @@ class Default_Index extends Controller
             echo '<h3>'.__METHOD__.'</h3>';
         }
 
+        /*
+        $bases = ORM::factory('base')->where('name', 'marco')->find_all();
+        echo count($bases);
+        echo "<br />";
+        */
 
-        $base = ORM::factory('base');
-        $db = Database::instance();
-        $ans = $db->get_all('base', 1);
-        var_dump($ans);
-
+        $base = ORM::factory('base', 9);
+        //echo nl2br($base);
+        var_dump($base);
 
         /*
         $view = new View($this->template);

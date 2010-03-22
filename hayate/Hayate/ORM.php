@@ -25,7 +25,7 @@ abstract class ORM
     protected $db;
     protected $dbconfig = 'default';
     protected $fields = array();
-    protected $private_key = 'id';
+    protected $primary_key = 'id';
     protected $foreign_key;
     protected $loaded;
     protected $table_name;
@@ -35,11 +35,12 @@ abstract class ORM
     public function __construct($id = null)
     {
         if (! isset($this->table_name)) {
-            $this->table_name = strtolower(str_ireplace('_model', '', __CLASS__));
+            $this->table_name = strtolower(str_ireplace('model_', '', get_class($this)));
         }
         $this->set_fields();
-        $this->db = Database::instance($dbconfig);
+        $this->db = Database::instance($this->dbconfig);
         $this->loaded = false;
+        $this->orderby = array($this->primary_key => 'ASC');
         if (null !== $id)
         {
             $this->load($id);
@@ -48,7 +49,7 @@ abstract class ORM
 
     public static function factory($name, $id = null)
     {
-        $classname = ucfirst(strtolower($name)).'_Model';
+        $classname = 'Model_'.ucfirst(strtolower($name));
         return new $classname($id);
     }
 
@@ -66,6 +67,7 @@ abstract class ORM
         try {
             $this->db->where($this->unique_key($id), $id)
                 ->get($this->table_name, $this);
+            $this->loaded = true;
         }
         catch (Hayate_Database_Exception $ex) {
             throw new Hayate_ORM_Exception($ex);
@@ -115,7 +117,7 @@ abstract class ORM
 
     public function unique_key($id)
     {
-        return $this->private_key;
+        return $this->primary_key;
     }
 
     public function find($id = null)
@@ -231,6 +233,11 @@ abstract class ORM
         {
             $this->fields[$name]->value = $this->fields[$name]->default;
         }
+    }
+
+    public function __toString()
+    {
+        return print_r($this->fields, true);
     }
 
     protected function add_field($name, $value = null)

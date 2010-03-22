@@ -360,15 +360,37 @@ class Hayate_Database_Pdo extends PDO implements Hayate_Database_Interface
 
     public function get($table = null, $model = null)
     {
-        $stm = $this->get_all($table, $model, 1, 0);
-        switch (true)
-        {
-        case is_string($model):
-            return $stm->fetch(PDO::FETCH_CLASS);
-        case ($model instanceof ORM):
-            return $stm->fetch(PDO::FETCH_INTO);
-        default:
-            return $stm->fetch($this->fetch_mode);
+        if (! empty($table) && is_string($table)) {
+            $this->from($table);
+        }
+        $this->limit = 1;
+        $this->offset = 0;
+        $sql = $this->compile_select();
+
+        $mode = $this->fetch_mode;
+        try {
+            switch (true)
+            {
+            case is_string($model):
+                $mode = PDO::FETCH_CLASS;
+                $stm = $this->query($sql, $mode, $model, array());
+                break;
+            case ($model instanceof ORM):
+                $mode = PDO::FETCH_INTO;
+                $stm = $this->query($sql, $mode, $model);
+                break;
+            default:
+                $stm = $this->query($sql);
+            }
+            $ret = $stm->fetch($mode);
+            $stm->closeCursor();
+            return $ret;
+        }
+        catch (PDOException $ex) {
+            throw new Hayate_Database_Exception($ex);
+        }
+        catch (Exception $ex) {
+            throw new Hayate_Database_Exception($ex);
         }
     }
 
@@ -389,9 +411,10 @@ class Hayate_Database_Pdo extends PDO implements Hayate_Database_Interface
     public function execute($query, array $values = array(), $model = null)
     {
         try {
+            $stm = $this->prepare($query, array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL));
+
             if (count($values) > 0)
             {
-                $stm = $this->prepare($query);
                 $i = 1;
                 foreach ($values as $value)
                 {
@@ -413,33 +436,9 @@ class Hayate_Database_Pdo extends PDO implements Hayate_Database_Interface
                         $stm->bindParam($i++, $value);
                     }
                 }
-                switch (true)
-                {
-                case is_string($model):
-                    $stm->setFetchMode(PDO::FETCH_CLASS, $model, array());
-                    break;
-                case ($model instanceof ORM):
-                    $stm->setFetchMode(PDO::FETCH_INTO, $model);
-                    break;
-                default:
-                    $stm->setFetchMode($this->fetch_mode);
-                }
-                $stm->execute();
             }
-            else {
-                $stm = $this->query($query);
-                switch (true)
-                {
-                case is_string($model):
-                    $stm->setFetchMode(PDO::FETCH_CLASS, $model, array());
-                    break;
-                case ($model instanceof ORM):
-                    $stm->setFetchMode(PDO::FETCH_INTO, $model);
-                    break;
-                default:
-                    $stm->setFetchMode($this->fetch_mode);
-                }
-            }
+            $stm->execute();
+
             // store the query string
             $this->last_query = $stm->queryString;
 
@@ -453,7 +452,7 @@ class Hayate_Database_Pdo extends PDO implements Hayate_Database_Interface
             {
                 return $stm->rowCount();
             }
-            return $stm;
+            return new Hayate_Database_Iterator($stm, $this, $model);
         }
         catch (PDOException $ex) {
             throw new Hayate_Database_Exception($ex);
