@@ -55,6 +55,7 @@ class Dispatcher
 
     public function dispatch()
     {
+        Event::run('hayate.dispatch', array($this));
         $filepath = $this->modules_path.$this->module().'/controllers/'.$this->controller().'.php';
         if (is_file($filepath) && is_readable($filepath))
         {
@@ -63,7 +64,9 @@ class Dispatcher
             $rfc = new ReflectionClass($classname);
             if ($rfc->isSubclassOf('Controller') && $rfc->isInstantiable())
             {
+                Event::run('hayate.pre_controller');
                 $controller = $rfc->newInstance();
+                Event::run('hayate.post_controller', array($controller));
                 $action = $rfc->hasMethod($this->action()) ? $rfc->getMethod($this->action()) : $rfc->getMethod('__call');
                 if ($action->isPublic() && (strpos($action->getName(), '_') !== 0)) {
                     $action->invokeArgs($controller, $this->params());
@@ -74,7 +77,10 @@ class Dispatcher
             }
         }
         else {
-            throw new HayateException('Not Found', 404);
+            if (true !== Event::run('hayate.404', array($this)))
+            {
+                //throw new HayateException('Not Found', 404);
+            }
         }
     }
 

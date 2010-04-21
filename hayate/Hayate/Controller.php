@@ -28,54 +28,54 @@ abstract class Controller
 
     public function __construct()
     {
-	$this->request = Request::instance();
-	$this->input = Input::instance();
-	$this->params = array_merge($this->input->get(),$this->input->post());
+        $this->request = Request::instance();
+        $this->input = Input::instance();
+        $this->params = array_merge($this->input->get(),$this->input->post());
     }
 
     public function forward($action, $controller = null, $module = null, array $params = array())
     {
-	$dispatcher = Dispatcher::instance();
-	$dispatcher->action($action);
-	$dispatcher->controller($controller);
-	$dispatcher->module($module);
-	$this->params = array_merge($this->params, $params);
-	$this->request->dispatched(false);
+        $dispatcher = Dispatcher::instance();
+        $dispatcher->action($action);
+        $dispatcher->controller($controller);
+        $dispatcher->module($module);
+        $this->params = array_merge($this->params, $params);
+        $this->request->dispatched(false);
     }
 
     public function getParam($name, $default = null)
     {
-	return array_key_exists($name, $this->params) ? $this->params[$name] : $default;
+        return array_key_exists($name, $this->params) ? $this->params[$name] : $default;
     }
 
     public function get($name = null, $default = null)
     {
-	return $this->input->get($name, $default);
+        return $this->input->get($name, $default);
     }
 
     public function post($name = null, $default = null)
     {
-	return $this->input->post($name, $default);
+        return $this->input->post($name, $default);
     }
 
     public function cookie($name = null, $default = null)
     {
-	return $this->input->cookie($name, $default);
+        return $this->input->cookie($name, $default);
     }
 
     public function put($name = null, $default = null)
     {
-	return $this->input->put($name, $default);
+        return $this->input->put($name, $default);
     }
 
     public function redirect($location, $code = 302)
     {
-	$this->request->redirect($location, $code);
+        $this->request->redirect($location, $code);
     }
 
     public function refresh()
     {
-	$this->request->refresh();
+        $this->request->refresh();
     }
 
     /**
@@ -83,7 +83,7 @@ abstract class Controller
      */
     public function __call($method, array $args)
     {
-	Log::info(__METHOD__);
-	throw new HayateException('Not Found', 404);
+        Log::info(__METHOD__);
+        throw new HayateException('Not Found', 404);
     }
 }

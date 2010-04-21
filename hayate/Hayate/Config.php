@@ -116,7 +116,6 @@ class Config implements ArrayAccess
      */
     public function load($namespace, $conf, $mutable = false)
     {
-        require_once 'Registry.php';
         if (is_array($conf)) {
             $this->data[$namespace] = new Registry($conf, $mutable);
         }

@@ -47,9 +47,6 @@ final class Hayate
 
         // load config files
         $this->load_configs();
-        // add modules include paths
-        $this->add_modules_paths();
-
         // set internal encoding
         mb_internal_encoding(Config::instance()->get('charset', 'UTF-8'));
     }
@@ -64,13 +61,23 @@ final class Hayate
 
     public function run()
     {
+        static $run;
+        // it will run only once
+        if (true === $run) {
+            return;
+        }
         $request = Request::instance();
         $dispatcher = Dispatcher::instance();
+        Event::run('hayate.pre_dispatch');
         do {
             $request->dispatched(true);
             $dispatcher->dispatch();
 
         } while (false === $request->dispatched());
+
+        Event::run('hayate.post_dispatch', array($dispatcher));
+        $run = true;
+        Event::run('hayate.shutdown');
     }
 
     public static function autoload($classname)
@@ -126,6 +133,33 @@ final class Hayate
     }
 
     /**
+     * @return array An array of activated modules directories paths
+     * not including last forward slash
+     */
+    public static function modules()
+    {
+        static $ret;
+        if (is_array($ret))
+        {
+            return $ret;
+        }
+        $config = Config::instance();
+        $modules = $config->get('modules', array());
+        $modules[] = $config->get('default_module', 'default');
+
+        $ret = array();
+        foreach ($modules as $module)
+        {
+            $path = APPPATH . 'modules/'.$module;
+            if (is_dir($path))
+            {
+                $ret[] = $path;
+            }
+        }
+        return $ret;
+    }
+
+    /**
      * @param string $type One of the known directories within app/modules
      */
     private static function find_file($dirname, $filename)
@@ -143,29 +177,5 @@ final class Hayate
             }
         }
         return $dirname.'/'.$filename.'.php';
-    }
-
-    /**
-     * TODO: maybe get rid of this method
-     */
-    private function add_modules_paths()
-    {
-        $config = Config::instance();
-        $modules = $config->get('modules', array());
-        $modules[] = $config->get('default_module', 'default');
-        $include_path = get_include_path().PATH_SEPARATOR;
-
-        foreach ($modules as $module)
-        {
-            $files = new RegexIterator(new DirectoryIterator(APPPATH.'modules/'.$module),'/^[^\.]/');
-            foreach ($files as $file)
-            {
-                if ($file->isDir() && $file->isReadable())
-                {
-                    $include_path .= APPPATH.'modules/'.$module.'/'.$file->getFilename().'/'.PATH_SEPARATOR;
-                }
-            }
-        }
-        set_include_path($include_path);
     }
 }

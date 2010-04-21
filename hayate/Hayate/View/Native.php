@@ -29,15 +29,13 @@ class Hayate_View_Native implements Hayate_View_Interface
     {
         $this->vars = array();
         $include_path = rtrim(get_include_path(),PATH_SEPARATOR).PATH_SEPARATOR;
-        $dirinfo = new DirectoryIterator(APPPATH.'modules/');
-        foreach ($dirinfo as $info)
-	{
-            if ($info->isDir() && !$info->isDot())
-	    {
-                $viewpath = $info->getPathname().DIRECTORY_SEPARATOR.'views';
-                if (is_dir($viewpath)) {
-                    $include_path .= $viewpath . PATH_SEPARATOR;
-                }
+        $modules = Hayate::modules();
+        foreach ($modules as $module)
+        {
+            $viewpath = $module.DIRECTORY_SEPARATOR.'views';
+            if (is_dir($viewpath))
+            {
+                $include_path .= $viewpath . PATH_SEPARATOR;
             }
         }
         set_include_path($include_path);
@@ -45,7 +43,7 @@ class Hayate_View_Native implements Hayate_View_Interface
 
     public static function instance()
     {
-	if (null == self::$instance) {
+        if (null == self::$instance) {
             self::$instance = new self();
         }
         return self::$instance;
@@ -95,19 +93,19 @@ class Hayate_View_Native implements Hayate_View_Interface
 
     public function render($template)
     {
-	extract($this->vars);
-	ob_start();
-	require_once($template.'.php');
-	ob_end_flush();
+        extract($this->vars);
+        ob_start();
+        require_once($template.'.php');
+        ob_end_flush();
     }
 
     public function fetch($template)
     {
-	extract($this->vars);
-	ob_start();
-	require_once($template.'.php');
-	$content = ob_get_contents();
-	ob_end_clean();
-	return $content;
+        extract($this->vars);
+        ob_start();
+        require_once($template.'.php');
+        $content = ob_get_contents();
+        ob_end_clean();
+        return $content;
     }
 }

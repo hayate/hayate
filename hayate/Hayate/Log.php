@@ -54,18 +54,17 @@ class Log
         if ($type <= $error_level)
         {
             $logdir = APPPATH.'logs/';
-            if (! is_writable($logdir))
+            if (is_writable($logdir))
             {
-                throw new HayateException(sprintf(_('"logs" directory "%s" is not writable.'), $logdir));
+                $filename = $logdir.'log-'.date('d-m-Y').'.log';
+                $logfile = new SplFileObject($filename, 'a');
+                self::header($type, $logfile);
+                if (true === $print_r) {
+                    $msg = print_r($msg, true);
+                }
+                $logfile->fwrite($msg);
+                self::footer($logfile);
             }
-            $filename = $logdir.'log-'.date('d-m-Y').'.log';
-            $logfile = new SplFileObject($filename, 'a');
-            self::header($type, $logfile);
-            if (true === $print_r) {
-                $msg = print_r($msg, true);
-            }
-            $logfile->fwrite($msg);
-            self::footer($logfile);
         }
     }
 
