@@ -4,9 +4,10 @@ RewriteEngine On
 # The document root
 RewriteBase /
 
-# Don't apply to existing symbolic links, files or directories
+# Don't apply to existing symbolic links, files, directories or favicon.ico
 RewriteCond %{REQUEST_FILENAME} !-l
 RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !favicon.ico$
 RewriteCond %{REQUEST_FILENAME} !-d
 
 # Rewrite all after index.php/
