@@ -51,11 +51,6 @@ final class Hayate
         mb_internal_encoding(Config::instance()->get('charset', 'UTF-8'));
     }
 
-    public function delete_me()
-    {
-
-    }
-
     public static function instance()
     {
         if (null === self::$instance) {
