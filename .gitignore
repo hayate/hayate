@@ -1,6 +1,3 @@
-access_log
-error_log
-app/logs/*
-app/templates/*
-app/templates_c/*
-app/libs/*
+access.log
+error.log
+application/logs/*

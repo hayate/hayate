@@ -16,15 +16,53 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- * @version 1.0
- */
-final class Hayate
+final class Hayate_Bootstrap
 {
     private static $instance = null;
 
     private function __construct()
     {
+        $include_path = get_include_path() . PATH_SEPARATOR;
+        $include_path .= dirname(dirname(__FILE__));
+        set_include_path($include_path);
+
+        if (version_compare(PHP_VERSION, '5.1.2') < 0)
+        {
+            require_once 'Hayate/Exception.php';
+            throw new Hayate_Exception(sprintf(_('Hayate requires php version >= 5.1.2, but %s installed.'), PHP_VERSION));
+        }
+        // if present load this application bootstrap file
+        $bs = APPPATH . 'bootstrap.php';
+        if (is_readable($bs)) require_once $bs;
+
+        // TODO: register error handler
+
+        // Hayate knows how to autoload its own classes
+        if (false === spl_autoload_functions())
+        {
+            if (function_exists('__autoload')) {
+                spl_autoload_register('__autoload');
+            }
+        }
+        spl_autoload_register(array('Hayate_Bootstrap', 'autoload'));
+
+        // load main config
+        $config = Hayate_Config::load();
+
+        if ($config->get('timezone', false))
+        {
+            date_default_timezone_set($config->core->timezone);
+        }
+        if ($config->get('charset', false))
+        {
+            mb_internal_encoding($config->core->charset);
+        }
+        if ($config->get('locale', false))
+        {
+            setLocale(LC_ALL, $config->core->locale);
+        }
+
+        /*
         // add include paths
         $include_path = get_include_path().PATH_SEPARATOR;
         $include_path .= dirname(__FILE__).PATH_SEPARATOR;
@@ -36,22 +74,14 @@ final class Hayate
         // register error handler
         set_error_handler(array($this, 'error_handler'));
 
-        // register hayate autoload
-        if (false === spl_autoload_functions())
-        {
-            if (function_exists('__autoload')) {
-                spl_autoload_register('__autoload');
-            }
-        }
-        spl_autoload_register(array('Hayate', 'autoload'));
-
         // load config files
         $this->load_configs();
         // set internal encoding
         mb_internal_encoding(Config::instance()->get('charset', 'UTF-8'));
+        */
     }
 
-    public static function instance()
+    public static function getInstance()
     {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -61,6 +91,7 @@ final class Hayate
 
     public function run()
     {
+        /*
         static $run;
         // it will run only once
         if (true === $run) {
@@ -78,34 +109,16 @@ final class Hayate
         Event::run('hayate.post_dispatch', array($dispatcher));
         $run = true;
         Event::run('hayate.shutdown');
+        */
     }
 
     public static function autoload($classname)
     {
-        if (false === strpos($classname, '_'))
-        {
-            $filename = HAYATE.'Hayate/'.$classname.'.php';
-        }
-        else {
-            $segs = explode('_', $classname);
-            if (is_array($segs))
-            {
-                switch ($segs[0]) {
-                case 'Hayate':
-                    $filename = HAYATE.implode('/', $segs).'.php';
-                    break;
-                case 'Model':
-                    array_shift($segs);
-                    $filename = self::find_file('models', implode('/', $segs));
-                    break;
-                }
-            }
-        }
+        $filepath = str_replace('_', DIRECTORY_SEPARATOR, $classname);
 
-        if (isset($filename) && is_file($filename) && is_readable($filename))
-        {
-            require_once $filename;
-        }
+        var_dump($filepath);
+
+        require_once $filepath . '.php';
     }
 
     public function error_handler($errno, $errstr, $errfile = '', $errline = 0)

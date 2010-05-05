@@ -20,10 +20,10 @@
  * @package Hayate
  * @version 1.0
  */
-class HayateException extends Exception
+class Hayate_Exception extends Exception
 {
     /**
-     * HayateExcetion
+     * Hayate_Excetion
      *
      * @param string $message Error message
      * @param int $code Error code or number
@@ -39,7 +39,10 @@ class HayateException extends Exception
             parent::__construct($message->getMessage(), (int)$message->getCode());
             $this->setFile($message->getFile());
             $this->setLine($message->getLine());
-            Log::error($message->getMessage());
+            if (class_exists('Log', false))
+            {
+                Log::error($message->getMessage());
+            }
         }
         else {
             parent::__construct($message, $code);
@@ -48,7 +51,10 @@ class HayateException extends Exception
                 $this->setFile($prev->getFile());
                 $this->setLine($prev->getLine());
             }
-            Log::error($message);
+            if (class_exists('Log', false))
+            {
+                Log::error($message);
+            }
         }
     }
 

@@ -16,10 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- * @version 1.0
- */
-class Log
+class Hayate_Log
 {
     const HAYATE_LOG_OFF = 0;
     const HAYATE_LOG_ERROR = 1;
@@ -50,16 +47,18 @@ class Log
 
     protected static function write($type, $msg, $print_r)
     {
-        $error_level = Config::instance()->get('error_level', 0);
+        $config = Hayate_Config::load();
+        $error_level = $config->get('error_level', self::HAYATE_LOG_OFF);
         if ($type <= $error_level)
         {
-            $logdir = APPPATH.'logs/';
-            if (is_writable($logdir))
+            $logdir = $config->get('log_directory', APPPATH . 'logs/', true);
+            if ((is_dir($logdir) && is_writable($logdir)) || @mkdir($logdir))
             {
                 $filename = $logdir.'log-'.date('d-m-Y').'.log';
                 $logfile = new SplFileObject($filename, 'a');
                 self::header($type, $logfile);
-                if (true === $print_r) {
+                if (true === $print_r)
+                {
                     $msg = print_r($msg, true);
                 }
                 $logfile->fwrite($msg);

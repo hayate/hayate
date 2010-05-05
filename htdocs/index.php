@@ -16,14 +16,29 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 /**
- * @package Hayate_Database
- * @version 1.0
+ * relative or absolute path of application directory
  */
-class Hayate_Database_Exception extends HayateException
-{
-    public function __construct($message = '', $code = 0, Exception $prev = null)
-    {
-        parent::__construct($message, $code, $prev);
-    }
-}
+$application = '../application';
+
+/**
+ * relative or absolute path to application libraries
+ */
+$library = '../lib';
+
+/**
+ * relative or absolute path of modules directory
+ */
+$modules = $application . '/modules';
+
+define('APPPATH', realpath($application) . DIRECTORY_SEPARATOR);
+define('LIBPATH', realpath($library) . DIRECTORY_SEPARATOR);
+define('MODPATH', realpath($modules) . DIRECTORY_SEPARATOR);
+
+unset($application);
+unset($library);
+unset($modules);
+
+require_once LIBPATH . 'Hayate/Bootstrap.php';
+Hayate_Bootstrap::getInstance()->run();
