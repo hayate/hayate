@@ -16,34 +16,24 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- * @package Hayate_Controller
- * @version 1.0
- *
- * Credits for this class go to Kohana
- * @see http://kohanaphp.com/
- */
-abstract class Hayate_Controller_Template extends Hayate_Controller
+abstract class Hayate_Subject implements SplSubject
 {
-    public $auto_render = true;
-    protected $template = 'template.html';
+    protected $observers;
 
     public function __construct()
     {
-        parent::__construct();
-
-        $this->template = new Hayate_View($this->template);
-        if (true === $this->auto_render)
-        {
-            Hayate_Event::add('hayate.post_dispatch', array($this, '_render'));
-        }
+        $this->observers = array();
     }
 
-    public function _render()
+    public function attach(Hayate_Observer $observer)
     {
-        if (true === $this->auto_render)
-        {
-            $this->template->render();
-        }
+        $this->observers["{$observer}"] = $observer;
     }
+
+    public function detach(Hayatae_Observer $observer)
+    {
+        unset($this->observers["{$observer}"]);
+    }
+
+    abstract public function notify();
 }

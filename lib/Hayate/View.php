@@ -20,7 +20,7 @@
  * @package Hayate
  * @version 1.0
  */
-class View
+class Hayate_View
 {
     protected $view;
     protected $template;
@@ -84,11 +84,11 @@ class View
 
     protected static function factory()
     {
-        $config = Config::instance()->get('view', 'native');
+        $config = Hayate_Config::getInstance()->get('view', array('name' => 'native'));
 
-        if (isset($config['name']))
+        if (isset($config->core->view['name']))
         {
-            switch ($config['name']) {
+            switch ($config->core->view['name']) {
             case 'smarty':
                 return Hayate_View_Smarty::instance();
             case 'native':

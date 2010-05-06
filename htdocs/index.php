@@ -35,6 +35,7 @@ $modules = $application . '/modules';
 define('APPPATH', realpath($application) . DIRECTORY_SEPARATOR);
 define('LIBPATH', realpath($library) . DIRECTORY_SEPARATOR);
 define('MODPATH', realpath($modules) . DIRECTORY_SEPARATOR);
+define('DOCROOT', $_SERVER['DOCUMENT_ROOT']);
 
 unset($application);
 unset($library);

@@ -20,7 +20,7 @@
  * @package Hayate
  * @version 1.0
  */
-class Input
+class Hayate_Input
 {
     protected static $instance;
     protected $params;
@@ -29,9 +29,10 @@ class Input
     {
         $this->params = array('get' => array(),
                               'post' => array(),
+                              'cookie' => array(),
                               'put' => array(),
-                              'cookie' => array());
-        if (Config::instance()->get('xss_clean', true))
+                              'rawput' => array());
+        if (Hayate_Config::getInstance()->get('xss_clean', true))
         {
             foreach ($_GET as $key => $val)
             {
@@ -46,13 +47,13 @@ class Input
                 $this->params['cookie'][$key] = htmlentities($val, ENT_QUOTES, 'utf-8');
             }
         }
-        if (Request::instance()->isPut())
+        if (Hayate_Request::getInstance()->isPut())
         {
-            $this->load_put();
+            $this->loadPut();
         }
     }
 
-    public static function instance()
+    public static function getInstance()
     {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -113,6 +114,13 @@ class Input
             case array_key_exists($name, $this->params['cookie']):
                 return $this->params['cookie'][$name];
             }
+            if (is_array($this->params['put']))
+            {
+                if (array_key_exists($name, $this->params['put']))
+                {
+                    return $this->params['put'][$name];
+                }
+            }
         }
         else if (array_key_exists($type, $this->params) &&
                  array_key_exists($name, $this->params[$type][$name]))
@@ -122,25 +130,27 @@ class Input
         return $default;
     }
 
-    private function memory_limit($in_bytes = true)
+    public function rawGet($name, $default = null)
     {
-        $val = ini_get('memory_limit');
-        $val = trim($val);
-        if (! $in_bytes) return $val;
-
-        $last = strtolower($val[strlen($val)-1]);
-        switch($last) {
-        case 'g':
-            $val *= 1024;
-        case 'm':
-            $val *= 1024;
-        case 'k':
-            $val *= 1024;
-        }
-        return $val;
+        return isset($_GET[$name]) ? $_GET[$name] : $default;
     }
 
-    protected function load_put()
+    public function rawPost($name, $default = null)
+    {
+        return isset($_POST[$name]) ? $_POST[$name] : $default;
+    }
+
+    public function rawCookie($name, $default = null)
+    {
+        return isset($_COOKIE[$name]) ? $_COOKIE[$name] : $default;
+    }
+
+    public function rawPut($name, $default = null)
+    {
+        return isset($this->params['rawput'][$name]) ? $this->params['rawput'][$name] : $default;
+    }
+
+    protected function loadPut()
     {
         $fp = fopen('php://input', 'r');
         $put_data = '';
@@ -163,6 +173,7 @@ class Input
                 foreach ($query as $key => $val)
                 {
                     $this->params['put'][$key] = htmlentities($val, ENT_QUOTES, 'utf-8');
+                    $this->params['rawput'][$key] = $val;
                 }
             }
             else {

@@ -20,32 +20,30 @@
  * @package Hayate
  * @version 1.0
  */
-abstract class Controller
+abstract class Hayate_Controller
 {
     protected $request;
     protected $input;
-    protected $params;
 
     public function __construct()
     {
-        $this->request = Request::instance();
-        $this->input = Input::instance();
-        $this->params = array_merge($this->input->get(),$this->input->post());
+        $this->request = Hayate_Request::getInstance();
+        $this->input = Hayate_Input::getInstance();
     }
 
     public function forward($action, $controller = null, $module = null, array $params = array())
     {
-        $dispatcher = Dispatcher::instance();
+        $dispatcher = Hayate_Dispatcher::getInstance();
         $dispatcher->action($action);
         $dispatcher->controller($controller);
         $dispatcher->module($module);
-        $this->params = array_merge($this->params, $params);
+        $dispatcher->params($params);
         $this->request->dispatched(false);
     }
 
     public function getParam($name, $default = null)
     {
-        return array_key_exists($name, $this->params) ? $this->params[$name] : $default;
+        return $this->input->param($name, $default);
     }
 
     public function get($name = null, $default = null)
@@ -79,11 +77,11 @@ abstract class Controller
     }
 
     /**
-     * This will trigger a 404 if not overwritten
+     * This will trigger an exception if not overwritten
      */
     public function __call($method, array $args)
     {
-        Log::info(__METHOD__);
-        throw new HayateException('Not Found', 404);
+        Hayate_Log::info(__METHOD__);
+        throw new Hayate_Exception(sprintf(_('Requested page: "%s" not found.'), Hayate_URI::getInstance()->current()), 404);
     }
 }

@@ -18,9 +18,8 @@
  */
 /**
  * @package Hayate
- * @version 1.0
  */
-class Request
+class Hayate_Request
 {
     protected static $instance = null;
     protected $dispatch;
@@ -32,7 +31,7 @@ class Request
         $this->method = strtolower($_SERVER['REQUEST_METHOD']);
     }
 
-    public static function instance()
+    public static function getInstance()
     {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -83,6 +82,6 @@ class Request
 
     public function refresh()
     {
-        $this->redirect(URI::instance()->current(), 302);
+        $this->redirect(Hayate_URI::getInstance()->current(), 302);
     }
 }

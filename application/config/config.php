@@ -47,13 +47,31 @@ $config['error_level'] = 3;
 $config['log_directory'] = APPPATH . 'logs';
 
 /**
-* set to true, to protect against Cross Site Scripting attacks
-*/
+ * Display errors ?
+ */
+$config['display_errors'] = true;
+
+/**
+ * Error reporting
+ *
+ * PHP >= 5.3.0
+ * development: E_ALL | E_STRICT
+ * production : E_ALL & ~E_DEPRECATED
+ *
+ * PHP < 5.3.0
+ * development: E_ALL | E_STRICT
+ * production : E_ALL
+ */
+$config['error_reporting'] = E_ALL | E_STRICT;
+
+/**
+ * set to true, to protect against Cross Site Scripting attacks
+ */
 $config['xss_clean'] = true;
 
 /**
-* Set the default module
-*/
+ * Set the default module
+ */
 $config['default_module'] = 'default';
 
 /**
@@ -62,8 +80,18 @@ $config['default_module'] = 'default';
 $config['modules'] = array();
 
 /**
-* Internal charset
-*/
+ * enable hooks, true to enable false to disable
+ *
+ * When hooks are enabled, files called hook.php in application
+ * directory and modules directories are loaded at startup, hook.php
+ * files should contain Hayate_Event::add(...) statements to hook to
+ * the events fired during application run time
+ */
+$config['enable_hooks'] = true;
+
+/**
+ * Internal charset
+ */
 $config['charset'] = 'UTF-8';
 
 /**

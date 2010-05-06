@@ -16,11 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-/**
- * @package Hayate
- * @version 1.0
- */
-class Event
+class Hayate_Event
 {
     protected static $events = array();
 
@@ -52,14 +48,23 @@ class Event
      */
     public static function run($name, array $params = array())
     {
-        if (isset(self::$events[$name]) && is_array(self::$events[$name])) {
-            foreach (self::$events[$name] as $event) {
-                if (is_callable($event)) {
+        if (isset(self::$events[$name]) && is_array(self::$events[$name]))
+        {
+            foreach (self::$events[$name] as $event)
+            {
+                if (is_callable($event))
+                {
                     $ret = call_user_func_array($event, $params);
-                    self::remove($name);
-                    return $ret;
+                    // return if we have a return value, else continue
+                    // processing events
+                    if (isset($ret))
+                    {
+                        self::remove($name);
+                        return $ret;
+                    }
                 }
             }
+            self::remove($name);
         }
         return null;
     }

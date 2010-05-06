@@ -27,25 +27,29 @@ class Hayate_View_Smarty implements Hayate_View_Interface
 
     protected function __construct()
     {
-        $config = Config::instance()->get('view');
-        if (!isset($config['smarty_dir']) && !class_exists('Smarty', false)) {
+        $config = Hayate_Config::getInstance();
+        if (((! $config->get('view', false)) || (! isset($config->core->view['smarty_dir']))) && (! class_exists('Smarty', false)))
+        {
             throw new Hayate_View_Exception(_('smarty_dir configuration parameter missing.'));
         }
-        if (! class_exists('Smarty', false)) {
-            require_once rtrim($config['smarty_dir'], '\\/') . '/Smarty.class.php';
+        if (! class_exists('Smarty', false))
+        {
+            require_once rtrim($config->core->view['smarty_dir'], '\\/') . '/Smarty.class.php';
         }
         // finally we can instantiate
         $this->smarty = new Smarty();
         // and set the properties values
-        $rflObj = new ReflectionObject($this->smarty);
-        foreach ($config as $prop => $val) {
-            if ($rflObj->hasProperty($prop)) {
+        $ro = new ReflectionObject($this->smarty);
+        foreach ($config->core->view as $prop => $val)
+        {
+            if ($ro->hasProperty($prop))
+            {
                 $this->smarty->$prop = $val;
             }
         }
     }
 
-    public static function instance()
+    public static function getInstance()
     {
 	if (null === self::$instance) {
 	    self::$instance = new self();
@@ -99,11 +103,11 @@ class Hayate_View_Smarty implements Hayate_View_Interface
     public function __call($method, array $args)
     {
         try {
-            $rflObj = new ReflectionObject($this->smarty);
-            if ($rflObj->hasMethod($method))
+            $ro = new ReflectionObject($this->smarty);
+            if ($ro->hasMethod($method))
 	    {
-                $rflMethod = $rflObj->getMethod($method);
-                return $rflMethod->invokeArgs($this->smarty, $args);
+                $rm = $ro->getMethod($method);
+                return $rm->invokeArgs($this->smarty, $args);
             }
         }
         catch (Exception $ex) {

@@ -29,10 +29,11 @@ class Hayate_View_Native implements Hayate_View_Interface
     {
         $this->vars = array();
         $include_path = rtrim(get_include_path(),PATH_SEPARATOR).PATH_SEPARATOR;
-        $modules = Hayate::modules();
+        $modules = Hayate_Config::getInstance()->get('modules', array());
+        $modules[] = Hayate_Config::getInstance()->get('default_module', 'default');
         foreach ($modules as $module)
         {
-            $viewpath = $module.DIRECTORY_SEPARATOR.'views';
+            $viewpath = MODPATH . $module.DIRECTORY_SEPARATOR.'views';
             if (is_dir($viewpath))
             {
                 $include_path .= $viewpath . PATH_SEPARATOR;
@@ -41,7 +42,7 @@ class Hayate_View_Native implements Hayate_View_Interface
         set_include_path($include_path);
     }
 
-    public static function instance()
+    public static function getInstance()
     {
         if (null == self::$instance) {
             self::$instance = new self();

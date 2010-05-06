@@ -21,35 +21,34 @@
  * invoked by the dispatcher.
  *
  * @package Hayate
- * @version 1.0
  */
-class Router
+class Hayate_Router
 {
     protected static $instance = null;
     protected $routes = array();
-    protected $config;
     protected $path;
     protected $routed_path;
 
     protected function __construct()
     {
-        $this->config = Config::instance();
-        $this->routes = $this->config->get('routes.*');
+        $config = Hayate_Config::load('routes', false);
+        $this->routes = $config->routes;
         $base_path = array();
-        if (isset($this->config->base_path)) {
-            $base_path = preg_split('|/|', $this->config->base_path, -1, PREG_SPLIT_NO_EMPTY);
+        if (isset($config->core->base_path)) {
+            $base_path = preg_split('|/|', $config->core->base_path, -1, PREG_SPLIT_NO_EMPTY);
         }
-        $uri = URI::instance();
-        $segments = $uri->segments();
-        for ($i = 0; $i < count($base_path); $i++) {
-            if (isset($segments[$i]) && ($segments[$i] == $base_path[$i])) {
+        $segments = Hayate_URI::getInstance()->segments();
+        for ($i = 0; $i < count($base_path); $i++)
+        {
+            if (isset($segments[$i]) && ($segments[$i] == $base_path[$i]))
+            {
                 unset($segments[$i]);
             }
         }
         $this->path = $this->routed_path = implode('/',$segments);
     }
 
-    public static function instance()
+    public static function getInstance()
     {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -59,10 +58,11 @@ class Router
 
     public function route()
     {
-        if (isset($this->routes[$this->path])) {
+        if (isset($this->routes[$this->path]))
+        {
             $this->routed_path = $this->routes[$this->path];
         }
-        else
+        else if($this->routes)
         {
             foreach ($this->routes as $key => $val)
             {

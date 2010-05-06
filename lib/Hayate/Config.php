@@ -35,14 +35,19 @@ class Hayate_Config implements Countable, ArrayAccess
      * file
      * @return Hayate_Config The loaded configuration file
      */
-    public static function load($name = 'core')
+    public static function load($name = 'core', $required = true)
     {
         if (null === self::$instance)
         {
             self::$instance = new self();
         }
-        self::$instance->_load($name);
+        self::$instance->_load($name, $required);
         return self::$instance;
+    }
+
+    public static function getInstance()
+    {
+        return self::load();
     }
 
     public function get($name, $default = null, $slash = false)
@@ -53,6 +58,8 @@ class Hayate_Config implements Countable, ArrayAccess
             $ns = substr($name, 0, $pos);
             $name = substr($name, ++$pos);
         }
+        // will try to load it if not loaded
+        $this->_load($ns, false);
         if (isset($this->$ns) && isset($this->$ns->$name))
         {
             return $slash ? rtrim($this->$ns->$name, '\//') . DIRECTORY_SEPARATOR : $this->$ns->$name;
@@ -60,51 +67,61 @@ class Hayate_Config implements Countable, ArrayAccess
         return $default;
     }
 
-    protected function _load($name)
+    protected function _load($name, $required)
     {
         if (isset($this->$name)) return;
 
+        // first look in application/config folder
+        $configname = $name.'.php';
         if ('core' == $name)
         {
-            $filepath = APPPATH . 'config/config.php';
-            if (is_file($filepath) && is_readable($filepath))
+            $configname = 'config.php';
+        }
+        $dirpath = APPPATH . 'config/';
+        $files = new DirectoryIterator($dirpath);
+        foreach ($files as $file)
+        {
+            $filepath = $file->getPathname();
+            $filename = $file->getFilename();
+            if (($filename == $configname) && is_file($filepath))
             {
                 require_once $filepath;
                 $this->$name = new ArrayObject($config,ArrayObject::ARRAY_AS_PROPS);
-            }
-            else {
-                throw new Hayate_Exception(sprintf(_('%s Not found.'), $filepath));
+                return;
             }
         }
-        else {
-            $modules = $this->get('modules', array());
-            $modules[] = $this->get('default_module', 'default');
-            foreach ($modules as $module)
+        // then look in modules config folder
+        $modules = $this->get('modules', array());
+        $modules[] = $this->get('default_module', 'default');
+        foreach ($modules as $module)
+        {
+            $dirpath = MODPATH . $module . '/config/';
+            if (is_dir($dirpath))
             {
-                $dirpath = MODPATH . $module . '/config/';
-                if (is_dir($dirpath) && is_readable($dirpath))
+                $files = new DirectoryIterator($dirpath);
+                foreach ($files as $file)
                 {
-                    $files = new DirectoryIterator($dirpath);
-                    foreach ($files as $file)
+                    $filepath = $file->getPathname();
+                    $filename = $file->getFilename();
+                    if (($filename == $configname) && is_file($filepath))
                     {
-                        $filepath = $file->getPathname();
-                        $ext = pathinfo($filepath, PATHINFO_EXTENSION);
-                        $filebase = $file->getBasename('.php');
-                        if (($ext == 'php') && ($filebase == $name) && is_file($filepath) && is_readable($filepath))
-                        {
-                            require_once $filepath;
-                            $this->$name = new ArrayObject($config,ArrayObject::ARRAY_AS_PROPS);
-                            return;
-                        }
+                        require_once $filepath;
+                        $this->$name = new ArrayObject($config,ArrayObject::ARRAY_AS_PROPS);
+                        return;
                     }
                 }
             }
+        }
+        if ($required)
+        {
             throw new Hayate_Exception(sprintf(_('%s%s Not found.'), $name, '.php'));
         }
     }
 
     public function __get($name)
     {
+        // try to load it in case is not loaded
+        $this->_load($name, false);
         return $this[$name];
     }
 

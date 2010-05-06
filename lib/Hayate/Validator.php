@@ -1,8 +1,25 @@
 <?php
-
-class Validator extends ArrayObject
+/**
+ * Hayate Framework
+ * Copyright 2009-2010 Andrea Belvedere
+ *
+ * Hayate is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation, either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ */
+class Hayate_Validator extends ArrayObject
 {
-    protected $valid_rules = array('required','email','url','numeric','boolean','(size)\[(\d+)\]','(range)\[([+-]?\d+)-([+-]?\d+)\]');
+    protected $valid_rules = array('required','email','url','numeric','boolean',
+                                   '(size)\[(\d+)\]','(range)\[([+-]?\d+)-([+-]?\d+)\]');
     protected $vals;
     protected $errors;
     protected $prefilters;
@@ -43,16 +60,19 @@ class Validator extends ArrayObject
                 $match = array();
                 if (preg_match('#'.$valid_rule.'#', $rule, $match) == 1)
                 {
+                    // required,email,url,numeric,boolean
                     if (count($match) == 1)
                     {
                         $this->vals[$field][] = array('rule' => $match[0],
                                                       'param' => null);
                     }
+                    // size
                     else if (count($match) == 3)
                     {
                         $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => $match[2]);
                     }
+                    // range
                     else if (count($match) == 4)
                     {
                         $this->vals[$field][] = array('rule' => $match[1],

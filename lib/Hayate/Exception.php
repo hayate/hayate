@@ -18,19 +18,18 @@
  */
 /**
  * @package Hayate
- * @version 1.0
  */
 class Hayate_Exception extends Exception
 {
     /**
      * Hayate_Excetion
      *
-     * @param string $message Error message
+     * @param string|Exception $message Error message or Wrapped exception
      * @param int $code Error code or number
+     * @param Exception $prev From (php >= 5.3.0)
      *
      * This constructor also optionally accept and Exception object as
-     * the 3rd argument or $errfile (string) and $errline (int) as 3rd
-     * and 4th parameters
+     * the 3rd argument (php >= 5.3.0)
      */
     public function __construct($message = '', $code = 0, Exception $prev = null)
     {
@@ -39,22 +38,24 @@ class Hayate_Exception extends Exception
             parent::__construct($message->getMessage(), (int)$message->getCode());
             $this->setFile($message->getFile());
             $this->setLine($message->getLine());
-            if (class_exists('Log', false))
-            {
-                Log::error($message->getMessage());
-            }
+            require_once 'Hayate/Log.php';
+            Hayate_Log::error($message->getMessage());
         }
         else {
-            parent::__construct($message, $code);
-            if ($prev instanceof Exception)
+            if (version_compare(PHP_VERSION, '5.3.0') >= 0)
             {
-                $this->setFile($prev->getFile());
-                $this->setLine($prev->getLine());
+                parent::__construct($message, $code, $prev);
             }
-            if (class_exists('Log', false))
-            {
-                Log::error($message);
+            else {
+                parent::__construct($message, $code);
+                if ($prev instanceof Exception)
+                {
+                    $this->setFile($prev->getFile());
+                    $this->setLine($prev->getLine());
+                }
             }
+            require_once 'Hayate/Log.php';
+            Hayate_Log::error($message);
         }
     }
 

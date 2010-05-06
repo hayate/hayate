@@ -20,32 +20,33 @@
  * @package Hayate
  * @version 1.0
  */
-class Dispatcher
+class Hayate_Dispatcher
 {
     protected static $instance = null;
-    protected $routed_uri;
+    protected $routedUri;
     protected $uri;
     protected $module;
     protected $controller = 'index';
     protected $action = 'index';
-    protected $modules_path;
+    protected $modulesPath;
     protected $params;
+    protected $errorReporter;
 
 
     protected function __construct()
     {
-        $route = Router::instance();
+        $route = Hayate_Router::getInstance();
         $route->route();
-        $this->routed_uri = $route->routedPath();
+        $this->routedUri = $route->routedPath();
         $this->uri = $route->path();
 
-        $config = Config::instance();
-        $this->module = isset($config->default_module) ? $config->default_module : 'default';
-        $this->modules_path = APPPATH.'modules/';
+        $this->module = Hayate_Config::getInstance()->get('default_module', 'default');
+        $this->modulesPath = MODPATH;
         $this->route();
+        $this->setErrorReporter(Hayate_Error_Default::getInstance());
     }
 
-    public static function instance()
+    public static function getInstance()
     {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -55,31 +56,84 @@ class Dispatcher
 
     public function dispatch()
     {
-        Event::run('hayate.dispatch', array($this));
-        $filepath = $this->modules_path.$this->module().'/controllers/'.$this->controller().'.php';
-        if (is_file($filepath) && is_readable($filepath))
+        $filepath = $this->modulesPath.$this->module().'/controllers/'.$this->controller().'.php';
+        if (is_file($filepath))
         {
+            // we found a valid controller
+            // load this module bootstrap.php file if it exists
+            $bs = $this->modulesPath.$this->module().'/bootstrap.php';
+            if (is_file($bs))
+            {
+                require_once $bs;
+            }
             require_once $filepath;
             $classname = ucfirst($this->module).'_'.ucfirst($this->controller);
             $rfc = new ReflectionClass($classname);
             if ($rfc->isSubclassOf('Controller') && $rfc->isInstantiable())
             {
-                Event::run('hayate.pre_controller');
+                Hayate_Event::run('hayate.pre_controller', array($this));
                 $controller = $rfc->newInstance();
-                Event::run('hayate.post_controller', array($controller));
+                Hayate_Event::run('hayate.post_controller', array($this, $controller));
+                Hayate_Event::run('hayate.pre_action', array($this));
                 $action = $rfc->hasMethod($this->action()) ? $rfc->getMethod($this->action()) : $rfc->getMethod('__call');
-                if ($action->isPublic() && (strpos($action->getName(), '_') !== 0)) {
+                if ($action->isPublic() && (strpos($action->getName(), '_') !== 0))
+                {
                     $action->invokeArgs($controller, $this->params());
                 }
-                else if ($action->getName() == '__call') {
+                else if ($action->getName() == '__call')
+                {
                     $action->invoke($controller, $this->action(), $this->params());
+                }
+                Hayate_Event::run('hayate.post_action', array($this));
+            }
+        }
+        else if (true !== Hayate_Event::run('hayate.404', array($this)))
+        {
+            throw new Hayate_Exception(sprintf(_('Requested page: "%s" not found.'), Hayate_URI::getInstance()->current()), 404);
+        }
+    }
+
+    public function exceptionDispatch(Exception $ex)
+    {
+        if (Hayate_Event::run('hayate.exception', array($this, $ex))) return;
+        Hayate_Log::error("{$ex}");
+
+        // try to dispatch to the current module error.php controller
+        $module = $this->module();
+        $filepath = $this->modulesPath . $module . '/controllers/error.php';
+        // if the error controller does not exists in the current module
+        // look in the default module
+        if (! is_file($filepath))
+        {
+            $module = Hayate_Config::getInstance()->get('default_module', 'default');
+            $filepath = $this->modulesPath . $module . '/controllers/error.php';
+        }
+        if (is_file($filepath))
+        {
+            require_once $filepath;
+            $classname = ucfirst($module).'_Error';
+            $rfc = new ReflectionClass($classname);
+            if ($rfc->isSubclassOf('Hayate_Controller') && $rfc->isInstantiable())
+            {
+                $controller = $rfc->newInstance();
+                $action = $rfc->hasMethod('index') ? $rfc->getMethod('index') : $rfc->getMethod('__call');
+                if ($action->isPublic())
+                {
+                    $action->invokeArgs($controller, array($ex));
                 }
             }
         }
         else {
-            if (true !== Event::run('hayate.404', array($this)))
+            $display_errors = Hayate_Config::getInstance()->get('display_errors', false);
+            if ($display_errors && $this->errorReporter)
             {
-                //throw new HayateException('Not Found', 404);
+                try {
+                    $this->errorReporter->setException($ex);
+                    $this->errorReporter->report();
+                }
+                catch (Exception $ex) {
+                    Hayate_Log::error($ex);
+                }
             }
         }
     }
@@ -108,22 +162,34 @@ class Dispatcher
         $this->action = $name;
     }
 
-    private function params()
+    public function setErrorReporter(Hayate_Error_Abstract $reporter)
     {
-        if (! is_array($this->params))
+        $this->errorReporter = $reporter;
+    }
+
+    public function params($params = null)
+    {
+        if (null === $params)
         {
-            $this->params = array();
+            if (! is_array($this->params))
+            {
+                $this->params = array();
+            }
+            return $this->params;
         }
-        return $this->params;
+        else if (is_array($params))
+        {
+            $this->params = $params;
+        }
     }
 
     protected function route()
     {
-        $segments = explode('/', $this->routed_uri);
+        $segments = explode('/', $this->routedUri);
         $module = array_shift($segments);
         if (! empty($module))
         {
-            $modulepath = $this->modules_path . $module;
+            $modulepath = $this->modulesPath . $module;
             if (is_dir($modulepath))
             {
                 $this->module($module);

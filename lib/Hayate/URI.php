@@ -18,9 +18,8 @@
  */
 /**
  * @package Hayate
- * @version 1.0
  */
-class URI
+class Hayate_URI
 {
     protected static $instance = null;
     protected $current;
@@ -29,7 +28,7 @@ class URI
 
     protected function __construct()
     {
-        $this->config = Config::instance();
+        $this->config = Hayate_Config::getInstance();
         $this->current = $this->scheme().'://'.
             $this->hostname().'/'.$this->path().$this->query(true);
         $this->segments = preg_split('|/|', $this->path(), -1, PREG_SPLIT_NO_EMPTY);
@@ -37,7 +36,7 @@ class URI
         $this->segments = array_map('mb_strtolower', $this->segments);
     }
 
-    public static function instance()
+    public static function getInstance()
     {
         if (null === self::$instance) {
             self::$instance = new self();
@@ -111,21 +110,26 @@ class URI
     public function hostname()
     {
         $port = (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != 80) ? ':'.$_SERVER['SERVER_PORT'] : '';
-        if (isset($this->config->hostname) && strlen($this->config->hostname) > 0) {
-            return $this->config->hostname.$port;
+        $hostname = $this->config->get('hostname', '');
+        if (is_string($hostname) && strlen($hostname) > 0)
+        {
+            return $hostname.$port;
         }
-        if (isset($_SERVER['HTTP_HOST']) && strlen($_SERVER['HTTP_HOST']) > 0) {
+        if (isset($_SERVER['HTTP_HOST']) && strlen($_SERVER['HTTP_HOST']) > 0)
+        {
             return $_SERVER['HTTP_HOST'].$port;
         }
-        if (isset($_SERVER['SERVER_NAME']) && strlen($_SERVER['SERVER_NAME']) > 0) {
+        if (isset($_SERVER['SERVER_NAME']) && strlen($_SERVER['SERVER_NAME']) > 0)
+        {
             return $_SERVER['SERVER_NAME'].$port;
         }
-        throw new HayateException(_('A valid host name could not be determined.'));
+        throw new Hayate_Exception(_('A valid host name could not be determined.'));
     }
 
     public function scheme()
     {
-        if (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && ('off' != $_SERVER['HTTPS'])) {
+        if (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && ('off' != $_SERVER['HTTPS']))
+        {
             return 'https';
         }
         return 'http';
