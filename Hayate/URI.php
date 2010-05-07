@@ -110,6 +110,10 @@ class Hayate_URI
     public function hostname()
     {
         $port = (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != 80) ? ':'.$_SERVER['SERVER_PORT'] : '';
+        if (isset($_SERVER['SERVER_NAME']) && strlen($_SERVER['SERVER_NAME']) > 0)
+        {
+            return $_SERVER['SERVER_NAME'].$port;
+        }
         $hostname = $this->config->get('hostname', '');
         if (is_string($hostname) && strlen($hostname) > 0)
         {
@@ -118,10 +122,6 @@ class Hayate_URI
         if (isset($_SERVER['HTTP_HOST']) && strlen($_SERVER['HTTP_HOST']) > 0)
         {
             return $_SERVER['HTTP_HOST'].$port;
-        }
-        if (isset($_SERVER['SERVER_NAME']) && strlen($_SERVER['SERVER_NAME']) > 0)
-        {
-            return $_SERVER['SERVER_NAME'].$port;
         }
         throw new Hayate_Exception(_('A valid host name could not be determined.'));
     }

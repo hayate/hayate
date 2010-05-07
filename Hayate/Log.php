@@ -52,7 +52,7 @@ class Hayate_Log
         if ($type <= $error_level)
         {
             $logdir = $config->get('log_directory', APPPATH . 'logs/', true);
-            if ((is_dir($logdir) && is_writable($logdir)) || @mkdir($logdir))
+            if (is_dir($logdir) && is_writable($logdir))
             {
                 $filename = $logdir.'log-'.date('d-m-Y').'.log';
                 $logfile = new SplFileObject($filename, 'a');

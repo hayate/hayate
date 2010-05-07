@@ -94,19 +94,34 @@ class Hayate_View_Native implements Hayate_View_Interface
 
     public function render($template)
     {
-        extract($this->vars);
-        ob_start();
-        require_once($template.'.php');
-        ob_end_flush();
+        try {
+            extract($this->vars);
+            ob_start();
+            require_once($template.'.php');
+            $content = ob_get_contents();
+            ob_end_clean();
+            echo $content;
+            //ob_end_flush();
+        }
+        catch (Exception $ex) {
+            Hayate_Log::error($ex);
+            echo $ex->getMessage();
+        }
     }
 
     public function fetch($template)
     {
-        extract($this->vars);
-        ob_start();
-        require_once($template.'.php');
-        $content = ob_get_contents();
-        ob_end_clean();
-        return $content;
+        try {
+            extract($this->vars);
+            ob_start();
+            require_once($template.'.php');
+            $content = ob_get_contents();
+            ob_end_clean();
+            return $content;
+        }
+        catch (Exception $ex) {
+            Hayate_Log::error($ex);
+            return $ex->getMessage();
+        }
     }
 }

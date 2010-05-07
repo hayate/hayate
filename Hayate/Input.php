@@ -123,7 +123,8 @@ class Hayate_Input
             }
         }
         else if (array_key_exists($type, $this->params) &&
-                 array_key_exists($name, $this->params[$type][$name]))
+                 array_key_exists($name, $this->params[$type]) &&
+                 ! empty($this->params[$type][$name]))
         {
             return $this->params[$type][$name];
         }

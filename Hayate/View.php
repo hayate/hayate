@@ -86,13 +86,13 @@ class Hayate_View
     {
         $config = Hayate_Config::getInstance()->get('view', array('name' => 'native'));
 
-        if (isset($config->core->view['name']))
+        if (isset($config['name']))
         {
-            switch ($config->core->view['name']) {
+            switch ($config['name']) {
             case 'smarty':
-                return Hayate_View_Smarty::instance();
+                return Hayate_View_Smarty::getInstance();
             case 'native':
-                return Hayate_View_Native::instance();
+                return Hayate_View_Native::getInstance();
             default:
                 throw new Hayate_View_Exception(_('Supported views are "smarty" and "native".'));
             }

@@ -133,7 +133,7 @@ abstract class Hayate_Error_Abstract
             $tmp .= $entry['function'].'(';
             if (isset($entry['args']) && is_array($entry['args']))
             {
-                $set = '';
+                $sep = '';
                 while (null !== ($arg = array_shift($entry['args'])))
                 {
                     $tmp .= $sep . gettype($arg);

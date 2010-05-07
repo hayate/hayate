@@ -71,6 +71,21 @@ abstract class Hayate_Controller
         $this->request->redirect($location, $code);
     }
 
+    public function isPost()
+    {
+        return $this->request->isPost();
+    }
+
+    public function isGet()
+    {
+        return $this->request->isGet();
+    }
+
+    public function isPut()
+    {
+	return $this->request->isPut();
+    }
+
     public function refresh()
     {
         $this->request->refresh();
@@ -82,6 +97,6 @@ abstract class Hayate_Controller
     public function __call($method, array $args)
     {
         Hayate_Log::info(__METHOD__);
-        throw new Hayate_Exception(sprintf(_('Requested page: "%s" not found.'), Hayate_URI::getInstance()->current()), 404);
+        throw new Hayate_Exception(sprintf(_('method "%s" not found.'), $method));
     }
 }

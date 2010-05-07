@@ -69,7 +69,7 @@ class Hayate_Dispatcher
             require_once $filepath;
             $classname = ucfirst($this->module).'_'.ucfirst($this->controller);
             $rfc = new ReflectionClass($classname);
-            if ($rfc->isSubclassOf('Controller') && $rfc->isInstantiable())
+            if ($rfc->isSubclassOf('Hayate_Controller') && $rfc->isInstantiable())
             {
                 Hayate_Event::run('hayate.pre_controller', array($this));
                 $controller = $rfc->newInstance();
@@ -95,46 +95,47 @@ class Hayate_Dispatcher
 
     public function exceptionDispatch(Exception $ex)
     {
-        if (Hayate_Event::run('hayate.exception', array($this, $ex))) return;
-        Hayate_Log::error("{$ex}");
+	try{
+            if (Hayate_Event::run('hayate.exception', array($this, $ex))) return;
+            Hayate_Log::error("{$ex}");
 
-        // try to dispatch to the current module error.php controller
-        $module = $this->module();
-        $filepath = $this->modulesPath . $module . '/controllers/error.php';
-        // if the error controller does not exists in the current module
-        // look in the default module
-        if (! is_file($filepath))
-        {
-            $module = Hayate_Config::getInstance()->get('default_module', 'default');
+            // try to dispatch to the current module error.php controller
+            $module = $this->module();
             $filepath = $this->modulesPath . $module . '/controllers/error.php';
-        }
-        if (is_file($filepath))
-        {
-            require_once $filepath;
-            $classname = ucfirst($module).'_Error';
-            $rfc = new ReflectionClass($classname);
-            if ($rfc->isSubclassOf('Hayate_Controller') && $rfc->isInstantiable())
+
+            // if the error controller does not exists in the current module
+            // look in the default module
+            if (! is_file($filepath))
             {
-                $controller = $rfc->newInstance();
-                $action = $rfc->hasMethod('index') ? $rfc->getMethod('index') : $rfc->getMethod('__call');
-                if ($action->isPublic())
+                $module = Hayate_Config::getInstance()->get('default_module', 'default');
+                $filepath = $this->modulesPath . $module . '/controllers/error.php';
+            }
+            if (is_file($filepath))
+            {
+                require_once $filepath;
+                $classname = ucfirst($module).'_Error';
+                $rfc = new ReflectionClass($classname);
+                if ($rfc->isSubclassOf('Hayate_Controller') && $rfc->isInstantiable())
                 {
-                    $action->invokeArgs($controller, array($ex));
+                    $controller = $rfc->newInstance();
+                    $action = $rfc->hasMethod('index') ? $rfc->getMethod('index') : $rfc->getMethod('__call');
+                    if ($action->isPublic())
+                    {
+                        $action->invokeArgs($controller, array($ex));
+                    }
                 }
             }
-        }
-        else {
-            $display_errors = Hayate_Config::getInstance()->get('display_errors', false);
-            if ($display_errors && $this->errorReporter)
-            {
-                try {
+            else {
+                $display_errors = Hayate_Config::getInstance()->get('display_errors', false);
+                if ($display_errors && $this->errorReporter)
+                {
                     $this->errorReporter->setException($ex);
                     $this->errorReporter->report();
                 }
-                catch (Exception $ex) {
-                    Hayate_Log::error($ex);
-                }
             }
+        }
+        catch(Exception $ex){
+            var_dump($ex);
         }
     }
 

@@ -27,7 +27,7 @@ final class Hayate_Bootstrap
         $include_path .= dirname(dirname(__FILE__));
         set_include_path($include_path);
 
-        if (version_compare(PHP_VERSION, self::REQUIRE_PHP_VERSION) < 0)
+        if (version_compare(PHP_VERSION, self::REQUIRED_PHP_VERSION) < 0)
         {
             require_once 'Hayate/Exception.php';
             throw new Hayate_Exception(sprintf(_('Hayate requires PHP >= %s, but %s is installed.'),
