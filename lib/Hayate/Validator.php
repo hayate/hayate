@@ -16,254 +16,131 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
-class Hayate_Validator extends ArrayObject
+/**
+ * @package Hayate
+ * @version 1.0
+ */
+class Hayate_Validator
 {
-    protected $valid_rules = array('required','email','url','numeric','boolean',
-                                   '(size)\[(\d+)\]','(range)\[([+-]?\d+)-([+-]?\d+)\]');
-    protected $vals;
+    protected $data;
+    protected $missing;
     protected $errors;
-    protected $prefilters;
+    protected $checks;
 
-    public function __construct(array $input = array())
+    public function __construct(array $data, array $required = array())
     {
-        parent::__construct($input, ArrayObject::ARRAY_AS_PROPS);
-        $this->vals = array();
+        $this->data = $data;
+        $this->missing = array();
         $this->errors = array();
-        $this->prefilters = array();
+        $this->checks = array();
+        if (! empty($required))
+        {
+            $this->setRequired($required);
+        }
     }
 
     /**
-     * @param $field string The field name
-     * @param $rule string|array If Strings the method accept a
-     * variable list of rules, otherwise an array of rules
+     * @param array $required A list of required fields
      */
-    public function add_rule($field, $rule)
+    public function setRequired(array $required)
     {
-        if (is_array($rule)) {
-            $this->_add_rule($field, array_unique($rule));
-        }
-        else {
-            // get this method args
-            $args = func_get_args();
-            // remove $field
-            array_shift($args);
-            $this->_add_rule($field, array_unique($args));
-        }
-    }
-
-    protected function _add_rule($field, array $rules)
-    {
-        foreach ($rules as $rule)
+        $present = array();
+        foreach ($this->data as $field => $value)
         {
-            foreach ($this->valid_rules as $valid_rule)
+            $value = is_string($value) ? trim($value) : $value;
+            if (! empty($value))
             {
-                $match = array();
-                if (preg_match('#'.$valid_rule.'#', $rule, $match) == 1)
-                {
-                    // required,email,url,numeric,boolean
-                    if (count($match) == 1)
-                    {
-                        $this->vals[$field][] = array('rule' => $match[0],
-                                                      'param' => null);
-                    }
-                    // size
-                    else if (count($match) == 3)
-                    {
-                        $this->vals[$field][] = array('rule' => $match[1],
-                                                      'param' => $match[2]);
-                    }
-                    // range
-                    else if (count($match) == 4)
-                    {
-                        $this->vals[$field][] = array('rule' => $match[1],
-                                                      'param' => array($match[2],$match[3]));
-                    }
-                }
+                $present[] = $field;
             }
         }
+        $this->missing = array_diff($required, $present);
     }
 
-    public function add_callback($field, $callback, $param = NULL)
+    public function isString($field, $custom = null)
     {
-        $this->vals[$field][] = array('callback' => array($callback, $param));
+        // don't do any checks if value is not present
+        if (in_array($field, $this->missing)) return;
+
+        if (array_key_exists($field, $this->data))
+        {
+            $msg = sprintf(_('%s: is not valid text.'), $this->fieldName($field));
+            $obj = new stdObject();
+            $obj->msg = is_null($custom) ? $msg : $custom;
+            $this->checks[$field][__FUNCTION__] = $obj;
+        }
+    }
+
+    public function maxLength($field, $max, $custom = null)
+    {
+        // don't do any checks if value is not present
+        if (in_array($field, $this->missing)) return;
+
+        if (array_key_exists($field, $this->data) && is_string($this->data[$field]))
+        {
+            if (! is_numeric($max))
+            {
+                throw new Hayate_Exception(_('"max" parameter must be numeric.'));
+            }
+            $msg = sprintf(_('%s: must be less or equal %d characters long.'), $this->fieldName($field), $max);
+            $obj = new stdObject();
+            $obj->msg = is_null($custom) ? $msg : $custom;
+            $obj->max = $max;
+            $this->checks[$field][__FUNCTION__] = $obj;
+        }
+    }
+
+    public function minLength($field, $min, $custom = null)
+    {
+        // don't do any checks if value is not present
+        if (in_array($field, $this->missing)) return;
+
+        if (array_key_exists($field, $this->data) && is_string($this->data[$field]))
+        {
+            if (! is_numeric($min))
+            {
+                throw new Hayate_Exception(_('"min" parameter must be numeric.'));
+            }
+            $msg = sprintf(_('%s: must be greater or equal %d characters.'), $this->fieldName($field), $min);
+            $obj = new stdObject();
+            $obj->msg = is_null($custom) ? $msg : $custom;
+            $obj->min = $min;
+            $this->checks[$field][__FUNCTION__] = $obj;
+        }
+    }
+
+    public function isArray($field, $custom = null)
+    {
+        // don't do any checks if value is not present
+        if (in_array($field, $this->missing)) return;
+
+        if (array_key_exists($field, $this->data))
+        {
+            $msg = sprintf(_('%s: must be an array.'), $this->fieldName($field));
+            $obj = new stdObject();
+            $obj->msg = is_null($custom) ? $msg : $custom;
+            $this->checks[$field][__FUNCTION__] = $obj;
+        }
+    }
+
+    public function maxArray($field, $max, $customMsg = null)
+    {
+        // don't do any checks if value is not present
+        if (in_array($field, $this->missing)) return;
+
+        if (array_key_exists($field, $this->data) && is_array($this->data[$field]))
+        {
+            $msg = sprintf(_('%s: must be an array.'), $this->fieldName($field));
+        }
     }
 
     public function validate()
     {
-        // applying pre filters before validating
-        $this->_pre_filter();
 
-        foreach ($this->vals as $field => $rules)
-        {
-            foreach ($rules as $rule)
-            {
-                if (isset($rule['rule']))
-                {
-                    $method = $rule['rule'];
-                    if (! $this->$method($field, $rule['param']))
-                    {
-                        $this->add_error_field($field, $rule['rule']);
-                        break;
-                    }
-                }
-                else if (isset($rule['callback'])) {
-                    $params = array(&$this, $field, $rule['callback'][1]);
-                    call_user_func_array($rule['callback'][0], $params);
-                }
-            }
-        }
-        return ($this->errors == array());
     }
 
-    public function add_error_field($field, $rule)
+    public function fieldName($field)
     {
-        $this->errors[$field][$rule] = 'failed';
-    }
-
-    public function pre_filter($field, $callback, $params = array())
-    {
-        if ((null === $params) || (is_string($params) && empty($params))) {
-            $params == array();
-        }
-        if (! is_array($params)) {
-            $params = array($params);
-        }
-        $this->prefilters[$field] = array($callback, $params);
-    }
-
-    /**
-     * @param array|string $map If array it should be:
-     * <pre>$errmsg = array('field_1' => array('rule_1' => mixed type implementation dependent,
-     *                                         'rule_2' => mixed type implementation dependent),
-     *                      'field_2' => array('rule_1' => mixed type implementation dependent,
-     *                                         'rule_2' => mixed type implementation dependent))</pre>
-     * if string, it should be a path to a php file containing the above described array format with out extension
-     * @param bool $rules If true include rules in returned array
-     */
-    public function errors($map = null, $rules = false)
-    {
-        switch (true) {
-        case is_string($map):
-            require_once $map.'.php';
-            break;
-        case is_array($map):
-            $errmsg = $map;
-            break;
-        default:
-            return $this->errors;
-        }
-
-        $msgs = array_intersect_key($errmsg, $this->errors);
-        foreach ($msgs as $field => $value) {
-            $msgs[$field] = array_intersect_key($value, $this->errors[$field]);
-        }
-        if (true === $rules) {
-            return $msgs;
-        }
-        foreach ($msgs as $field => $ins)
-        {
-            foreach ($ins as $in) {
-                $msgs[$field] = $in;
-            }
-        }
-        return $msgs;
-    }
-
-    public function as_array()
-    {
-        return $this->getArrayCopy();
-    }
-
-    public function __isset($name)
-    {
-        if (array_key_exists($name, $this)) {
-            return (false === empty($this[$name]));
-        }
-        return false;
-    }
-
-    protected function _pre_filter()
-    {
-        foreach ($this->prefilters as $field => $filter)
-        {
-            if ('*' == $field) {
-                foreach ($this as $key => $val)
-                {
-                    array_unshift($filter[1], $val);
-                    $this->$key = call_user_func_array($filter[0], $filter[1]);
-                }
-            }
-            else if (isset($this[$field]))
-            {
-                array_unshift($filter[1], $this[$field]);
-                $this->$field = call_user_func_array($filter[0], $filter[1]);
-            }
-        }
-    }
-
-    protected function required($field, $param = null)
-    {
-        if (! array_key_exists($field, $this)) {
-            return false;
-        }
-        if (is_numeric($this[$field]) && ($this[$field] == 0)) {
-            return true;
-        }
-        return (empty($this[$field]) === false);
-    }
-
-    protected function email($field, $param = null)
-    {
-        if (array_key_exists($field, $this)) {
-            return (filter_var($this[$field], FILTER_VALIDATE_EMAIL) !== false);
-        }
-        return true;
-    }
-
-    protected function url($field, $params = null)
-    {
-        if (array_key_exists($field, $this)) {
-            return (filter_var($this[$field], FILTER_VALIDATE_URL) !== false);
-        }
-        return true;
-    }
-
-    protected function numeric($field, $param = null)
-    {
-        if (array_key_exists($field, $this)) {
-            return is_numeric($this[$field]);
-        }
-        return true;
-    }
-
-    protected function boolean($field, $params = null)
-    {
-        if (array_key_exists($field, $this)) {
-            return (filter_var($this[$field], FILTER_VALIDATE_BOOLEAN, array('flags'=>FILTER_NULL_ON_FAILURE)) !== NULL);
-        }
-        return true;
-    }
-
-    protected function size($field, $params = null)
-    {
-        if (array_key_exists($field, $this)) {
-            if (! is_numeric($params)) {
-                trigger_error("Invalid non numeric param in ".__METHOD__);
-                return false;
-            }
-            return (mb_strlen($this[$field], 'UTF-8') <= $params);
-        }
-        return true;
-    }
-
-    protected function range($field, array $params)
-    {
-        if (array_key_exists($field, $this))
-        {
-            $min = $params[0];
-            $max = $params[1];
-            return (($this[$field] >= $min) && ($this[$field] <= $max));
-        }
-        return true;
+        $field = preg_replace('/_+/', ' ', $field);
+        return ucwords(strtolower(trim($field)));
     }
 }

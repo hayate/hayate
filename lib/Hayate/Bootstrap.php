@@ -18,6 +18,7 @@
  */
 final class Hayate_Bootstrap
 {
+    const REQUIRED_PHP_VERSION = '5.2.0';
     private static $instance = null;
 
     private function __construct()
@@ -26,10 +27,11 @@ final class Hayate_Bootstrap
         $include_path .= dirname(dirname(__FILE__));
         set_include_path($include_path);
 
-        if (version_compare(PHP_VERSION, '5.1.2') < 0)
+        if (version_compare(PHP_VERSION, self::REQUIRE_PHP_VERSION) < 0)
         {
             require_once 'Hayate/Exception.php';
-            throw new Hayate_Exception(sprintf(_('Hayate requires PHP >= 5.1.2, but %s is installed.'), PHP_VERSION));
+            throw new Hayate_Exception(sprintf(_('Hayate requires PHP >= %s, but %s is installed.'),
+                                               self::REQUIRED_PHP_VERSION, PHP_VERSION));
         }
         // if present load this application bootstrap file
         $bs = APPPATH . 'bootstrap.php';
