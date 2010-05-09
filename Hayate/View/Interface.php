@@ -22,13 +22,6 @@
  */
 interface Hayate_View_Interface
 {
-    public function get($name, $default = null);
-    public function set($name, $value = null);
-    public function render($template);
-    public function fetch($template);
-
-    public function __set($name, $value);
-    public function __get($name);
-    public function __isset($name);
-    public function __unset($name);
+    public function render($template, array $args = array());
+    public function fetch($template, array $args = array());
 }

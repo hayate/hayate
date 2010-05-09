@@ -23,11 +23,9 @@
 class Hayate_View_Native implements Hayate_View_Interface
 {
     protected static $instance = null;
-    protected $vars;
 
     protected function __construct()
     {
-        $this->vars = array();
         $include_path = rtrim(get_include_path(),PATH_SEPARATOR).PATH_SEPARATOR;
         $modules = Hayate_Config::getInstance()->get('modules', array());
         $modules[] = Hayate_Config::getInstance()->get('default_module', 'default');
@@ -47,81 +45,35 @@ class Hayate_View_Native implements Hayate_View_Interface
         if (null == self::$instance) {
             self::$instance = new self();
         }
+
         return self::$instance;
     }
 
-    public function get($name, $default = null)
+    public function render($template, array $args = array())
     {
-        if (array_key_exists($name, $this->vars)) {
-            return $this->vars[$name];
-        }
-        return $default;
-    }
-
-    public function set($name, $value = null)
-    {
-        if (is_array($name)) {
-            foreach ($name as $k => $v) {
-                if (!empty($k)) {
-                    $this->vars[$k] = $v;
-                }
-            }
-        }
-        else if (!empty($name)) {
-            $this->vars[$name] = $value;
-        }
-    }
-
-    public function __get($name)
-    {
-        return $this->get($name);
-    }
-
-    public function __set($name, $value)
-    {
-        $this->set($name, $value);
-    }
-
-    public function __isset($name)
-    {
-        return isset($this->vars[$name]);
-    }
-
-    public function __unset($name)
-    {
-        unset($this->vars[$name]);
-    }
-
-    public function render($template)
-    {
+        extract($args, EXTR_SKIP);
+        ob_start();
         try {
-            extract($this->vars);
-            ob_start();
             require_once($template.'.php');
-            $content = ob_get_contents();
-            ob_end_clean();
-            echo $content;
-            //ob_end_flush();
         }
         catch (Exception $ex) {
-            Hayate_Log::error($ex);
-            echo $ex->getMessage();
+            ob_end_clean();
+            throw $ex;
         }
+        ob_end_flush();
     }
 
-    public function fetch($template)
+    public function fetch($template, array $args = array())
     {
+        extract($args, EXTR_SKIP);
+        ob_start();
         try {
-            extract($this->vars);
-            ob_start();
             require_once($template.'.php');
-            $content = ob_get_contents();
-            ob_end_clean();
-            return $content;
         }
         catch (Exception $ex) {
-            Hayate_Log::error($ex);
-            return $ex->getMessage();
+            ob_end_clean();
+            throw $ex;
         }
+        return ob_get_clean();
     }
 }

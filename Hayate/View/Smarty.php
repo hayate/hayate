@@ -47,6 +47,10 @@ class Hayate_View_Smarty implements Hayate_View_Interface
                 $this->smarty->$prop = $val;
             }
         }
+        if (version_compare($this->smarty->_version, '3.0') < 0)
+        {
+            $this->is_smarty_2 = true;
+        }
     }
 
     public static function getInstance()
@@ -54,49 +58,19 @@ class Hayate_View_Smarty implements Hayate_View_Interface
 	if (null === self::$instance) {
 	    self::$instance = new self();
 	}
+        self::$instance->clearAllAssign();
 	return self::$instance;
     }
 
-    public function get($name, $default = null)
+    public function render($template, array $args = array())
     {
-        if (null !== $this->smarty->get_template_vars($name)) {
-            return $this->smarty->get_template_vars($name);
-        }
-        return $default;
-    }
-
-    public function set($name, $value = null)
-    {
-        $this->smarty->assign($name, $value);
-    }
-
-    public function __set($name, $value)
-    {
-        $this->set($name, $value);
-    }
-
-    public function __get($name)
-    {
-        return $this->get($name);
-    }
-
-    public function __isset($name)
-    {
-        return $this->smarty->get_template_vars($name) !== null;
-    }
-
-    public function __unset($name)
-    {
-        $this->smarty->clear_assign($name);
-    }
-
-    public function render($template)
-    {
+        $this->smarty->assign($args);
         $this->smarty->display($template.'.tpl');
     }
 
-    public function fetch($template)
+    public function fetch($template, array $args = array())
     {
+        $this->smarty->assign($args);
         return $this->smarty->fetch($template.'.tpl');
     }
 

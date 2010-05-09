@@ -20,11 +20,13 @@ final class Hayate_Bootstrap
 {
     const REQUIRED_PHP_VERSION = '5.2.0';
     private static $instance = null;
+    private $hayatePath;
 
     private function __construct()
     {
+        $this->hayatePath = dirname(dirname(__FILE__));
         $include_path = get_include_path() . PATH_SEPARATOR;
-        $include_path .= dirname(dirname(__FILE__));
+        $include_path .= $this->hayatePath;
         set_include_path($include_path);
 
         if (version_compare(PHP_VERSION, self::REQUIRED_PHP_VERSION) < 0)
@@ -47,7 +49,7 @@ final class Hayate_Bootstrap
                 spl_autoload_register('__autoload');
             }
         }
-        spl_autoload_register(array('Hayate_Bootstrap', 'autoload'));
+        spl_autoload_register(array($this, 'autoload'));
 
         // register exception handler
         set_exception_handler(array(Hayate_Dispatcher::getInstance(), 'exceptionDispatch'));
@@ -125,10 +127,13 @@ final class Hayate_Bootstrap
         Hayate_Event::run('hayate.shutdown');
     }
 
-    public static function autoload($classname)
+    public function autoload($classname)
     {
-        $filepath = str_replace('_', DIRECTORY_SEPARATOR, $classname);
-        require_once $filepath . '.php';
+        $filepath = $this->hayatePath .'/'. str_replace('_', DIRECTORY_SEPARATOR, $classname) .'.php';
+        if (is_file($filepath))
+        {
+            require_once $filepath;
+        }
     }
 
     public function error_handler($errno, $errstr, $errfile = '', $errline = 0)

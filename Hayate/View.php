@@ -24,11 +24,13 @@ class Hayate_View
 {
     protected $view;
     protected $template;
+    protected $vars;
 
     public function __construct($template)
     {
         $this->view = self::factory();
         $this->template = $template;
+        $this->vars = array();
     }
 
     /**
@@ -36,7 +38,7 @@ class Hayate_View
      */
     public function render()
     {
-        $this->view->render($this->template);
+        $this->view->render($this->template, $this->vars);
     }
 
     /**
@@ -44,17 +46,29 @@ class Hayate_View
      */
     public function fetch()
     {
-        return $this->view->fetch($this->template);
+        return $this->view->fetch($this->template, $this->vars);
     }
 
     public function get($name, $default = null)
     {
-        return $this->view->get($name, $default);
+        if (array_key_exists($name, $this->vars)) {
+            return $this->vars[$name];
+        }
+        return $default;
     }
 
     public function set($name, $value = null)
     {
-        $this->view->set($name, $value);
+        if (is_array($name)) {
+            foreach ($name as $k => $v) {
+                if (!empty($k)) {
+                    $this->vars[$k] = $v;
+                }
+            }
+        }
+        else if (!empty($name)) {
+            $this->vars[$name] = $value;
+        }
     }
 
     public function __get($name)
@@ -69,17 +83,25 @@ class Hayate_View
 
     public function __isset($name)
     {
-        return $this->view->__isset($name);
-    }
-
-    public function __toString()
-    {
-        return $this->fetch();
+        return isset($this->vars[$name]);
     }
 
     public function __unset($name)
     {
-        $this->view->__unset($name);
+        unset($this->vars[$name]);
+    }
+
+    public function __toString()
+    {
+        try {
+            return $this->fetch();
+        }
+        catch (Exception $ex) {
+            restore_error_handler();
+            trigger_error($ex->getMessage(), E_USER_ERROR);
+            set_error_handler(array(Hayate_Bootstrap::getInstance(), 'error_handler'));
+            return '';
+        }
     }
 
     protected static function factory()
