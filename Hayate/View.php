@@ -38,6 +38,11 @@ class Hayate_View
      */
     public function render()
     {
+        Hayate_Event::add('hayate.post_dispatch', array($this, '_render'));
+    }
+
+    public function _render()
+    {
         $this->view->render($this->template, $this->vars);
     }
 
