@@ -32,7 +32,7 @@ class Hayate_Event
 
     /**
      * @param string $name The name of the Event to remove
-     * @retur void
+     * @return void
      */
     public static function remove($name)
     {
@@ -50,7 +50,7 @@ class Hayate_Event
     {
         if (isset(self::$events[$name]) && is_array(self::$events[$name]))
         {
-            foreach (self::$events[$name] as $event)
+            while (null !== ($event = array_shift(self::$events[$name])))
             {
                 if (is_callable($event))
                 {
