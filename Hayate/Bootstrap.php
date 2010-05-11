@@ -92,6 +92,7 @@ final class Hayate_Bootstrap
                 }
             }
         }
+        Hayate_Event::add('hayate.shutdown', array($this, 'shutdown'));
     }
 
     public static function getInstance()
@@ -123,6 +124,9 @@ final class Hayate_Bootstrap
 
         } while (false === $request->dispatched());
 
+        Hayate_Event::run('hayate.send_headers');
+        Hayate_Event::run('hayate.render');
+
         $run = true;
         Hayate_Event::run('hayate.shutdown');
     }
@@ -134,6 +138,11 @@ final class Hayate_Bootstrap
         {
             require_once $filepath;
         }
+    }
+
+    public function shutdown()
+    {
+        session_write_close();
     }
 
     public function error_handler($errno, $errstr, $errfile = '', $errline = 0)

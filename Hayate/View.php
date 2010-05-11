@@ -38,7 +38,7 @@ class Hayate_View
      */
     public function render()
     {
-        Hayate_Event::add('hayate.post_dispatch', array($this, '_render'));
+        Hayate_Event::add('hayate.render', array($this, '_render'));
     }
 
     public function _render()

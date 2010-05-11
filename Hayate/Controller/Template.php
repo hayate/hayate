@@ -35,7 +35,7 @@ abstract class Hayate_Controller_Template extends Hayate_Controller
         $this->template = new Hayate_View($this->template);
         if (true === $this->auto_render)
         {
-            Hayate_Event::add('hayate.post_dispatch', array($this, '_render'));
+            Hayate_Event::add('hayate.render', array($this, '_render'));
         }
     }
 
