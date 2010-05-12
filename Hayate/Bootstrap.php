@@ -35,12 +35,9 @@ final class Hayate_Bootstrap
             throw new Hayate_Exception(sprintf(_('Hayate requires PHP >= %s, but %s is installed.'),
                                                self::REQUIRED_PHP_VERSION, PHP_VERSION));
         }
-        // if present load this application bootstrap file
-        $bs = APPPATH . 'bootstrap.php';
-        if (is_file($bs)) require_once $bs;
 
         // register error handler
-        set_error_handler(array($this, 'error_handler'));
+        set_error_handler('Hayate_Bootstrap::error_handler');
 
         // Hayate knows how to autoload its own classes
         if (false === spl_autoload_functions())
@@ -81,9 +78,7 @@ final class Hayate_Bootstrap
             {
                 require_once $hook;
             }
-            $modules = $config->get('modules', array());
-            $modules[] = $config->get('default_module', 'default');
-            foreach ($modules as $module)
+            foreach (self::modules() as $module)
             {
                 $hookpath = MODPATH . $module . '/hook.php';
                 if (is_file($hookpath))
@@ -92,7 +87,9 @@ final class Hayate_Bootstrap
                 }
             }
         }
-        Hayate_Event::add('hayate.shutdown', array($this, 'shutdown'));
+        // if present load this application bootstrap file
+        $bs = APPPATH . 'bootstrap.php';
+        if (is_file($bs)) require_once $bs;
     }
 
     public static function getInstance()
@@ -140,12 +137,15 @@ final class Hayate_Bootstrap
         }
     }
 
-    public function shutdown()
+    public static function modules()
     {
-        session_write_close();
+        $config = Hayate_Config::getInstance();
+        $modules = $config->get('modules', array());
+        $modules[] = $config->get('default_module', 'default');
+        return $modules;
     }
 
-    public function error_handler($errno, $errstr, $errfile = '', $errline = 0)
+    public static function error_handler($errno, $errstr, $errfile = '', $errline = 0)
     {
         $ex = new Hayate_Exception($errstr, $errno);
         $ex->setFile($errfile);

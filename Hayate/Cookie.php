@@ -48,10 +48,6 @@ class Hayate_Cookie
         $this->domain = isset($this->config->cookie->domain) ? $this->config->cookie->domain : Hayate_URI::getInstance()->hostname();
         $this->secure = isset($this->config->cookie->secure) ? (bool)$this->config->cookie->secure : false;
         $this->httponly = isset($this->config->cookie->httponly) ? (bool)$this->config->cookie->httponly : false;
-
-        Hayate_Log::error('start buffering');
-
-        Hayate_Event::add('hayate.send_headers', array($this, '_send'));
     }
 
     public static function getInstance()
@@ -61,11 +57,6 @@ class Hayate_Cookie
             self::$instance = new self();
         }
         return self::$instance;
-    }
-
-    public function __destruct()
-    {
-        Hayate_Log::error(__METHOD__);
     }
 
     /**
@@ -87,7 +78,6 @@ class Hayate_Cookie
 
         if ($this->encrypt)
         {
-            Hayate_Log::error(__METHOD__);
             $crypto = Hayate_Crypto::getInstance();
             $value = $crypto->encrypt($value);
         }
@@ -134,11 +124,5 @@ class Hayate_Cookie
         $domain = is_null($domain) ? $this->domain : $domain;
 
         setcookie($name, '', time() - 3600, $path, $domain);
-    }
-
-    public function _send()
-    {
-        Hayate_Log::error(__METHOD__);
-        //ob_end_flush();
     }
 }

@@ -30,18 +30,24 @@ class Hayate_Session
         case 'cookie':
             $ses = Hayate_Session_Cookie::getInstance();
             break;
-        case 'file':
-            $ses = Hayate_Session_File::getInstance();
-            break;
         case 'database':
             $ses = Hayate_Session_Database::getInstance();
+            break;
+        case 'native':
+            init_set('session.use_only_cookies', true);
+            init_set('session.use_trans_sid', false);
             break;
         default:
             throw new Hayate_Exception(sprintf(_('Session driver: "%s" not supported.'), $driver));
         }
-        $ans = session_set_save_handler(array($ses, 'open'), array($ses, 'close'), array($ses, 'read'),
-                                        array($ses, 'write'), array($ses, 'destroy'), array($ses, 'gc'));
-        session_start();
+        if (isset($ses))
+        {
+            session_set_save_handler(array($ses, 'open'), array($ses, 'close'), array($ses, 'read'),
+                                     array($ses, 'write'), array($ses, 'destroy'), array($ses, 'gc'));
+        }
+
+        Hayate_Event::add('hayate.shutdown', 'session_write_close');
+        $this->create();
     }
 
     public static function getInstance()
@@ -51,6 +57,22 @@ class Hayate_Session
             self::$instance = new self();
         }
         return self::$instance;
+    }
+
+    public function create()
+    {
+        $this->destroy();
+        $cookie = Hayate_Cookie::getInstance();
+        $session_name = isset($this->config->session->name) ? $this->config->session->name : 'HayateSession';
+        // only letters, numbers and underscore, at least one letter must be present
+        if (preg_match('/^\d*[a-z][a-z0-9_]*$/i', $session_name) != 1)
+        {
+            throw new Hayate_Exception(sprintf(_('Invalid session name: %s'), $session_name));
+        }
+        // set session name
+        session_name($session_name);
+        // start the session
+        session_start();
     }
 
     public function set($name, $value = null)
@@ -79,4 +101,22 @@ class Hayate_Session
         }
         return $default;
     }
+
+    public function regenerate()
+    {
+        session_regenerate_id();
+    }
+
+    public function destroy()
+    {
+        if ('' !== session_id())
+        {
+            $name = session_name();
+            session_destroy();
+            Hayate_Cookie::getInstance()->delete($name);
+        }
+    }
+
+    // can't clone a session
+    private function __clone() {}
 }

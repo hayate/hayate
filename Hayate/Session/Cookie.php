@@ -36,7 +36,8 @@ class Hayate_Session_Cookie implements Hayate_Session_Interface
         {
             $this->encrypt = Hayate_Crypto::getInstance();
         }
-        $this->name = $this->config->get('session.name', 'HayateSession');
+        $session_name = $this->config->get('session.name', 'HayateSession');
+        $this->name = $session_name.'_';
     }
 
     public static function getInstance()
@@ -57,6 +58,8 @@ class Hayate_Session_Cookie implements Hayate_Session_Interface
      */
     public function open($path, $name)
     {
+        Hayate_Log::info(__METHOD__.' path: '.$path);
+        Hayate_Log::info(__METHOD__.' name: '.$name);
         return true;
     }
 
@@ -67,6 +70,7 @@ class Hayate_Session_Cookie implements Hayate_Session_Interface
      */
     public function close()
     {
+        Hayate_Log::info(__METHOD__);
         return true;
     }
 
@@ -77,6 +81,7 @@ class Hayate_Session_Cookie implements Hayate_Session_Interface
      */
     public function read($id)
     {
+        Hayate_Log::info(__METHOD__.' '.$id);
         $value = (string)$this->cookie->get($this->name, '');
         if (empty($value)) return '';
 
@@ -96,6 +101,7 @@ class Hayate_Session_Cookie implements Hayate_Session_Interface
      */
     public function write($id, $data)
     {
+        Hayate_Log::info(__METHOD__.' '.$id);
         if ($this->encrypt)
         {
             $data = $this->encrypt->encrypt($data);
@@ -107,8 +113,6 @@ class Hayate_Session_Cookie implements Hayate_Session_Interface
         }
         $expire = $this->config->get('session.expire', null);
 
-        require_once 'Hayate/Log.php';
-        Hayate_Log::error('about to call '.__METHOD__);
         $this->cookie->set($this->name, $data, $expire);
         return true;
     }
@@ -121,6 +125,7 @@ class Hayate_Session_Cookie implements Hayate_Session_Interface
      */
     public function destroy($id)
     {
+        Hayate_Log::info(__METHOD__.' '.$id);
         $this->cookie->delete($this->name);
         return true;
     }
@@ -131,6 +136,7 @@ class Hayate_Session_Cookie implements Hayate_Session_Interface
      */
     public function gc($maxlifetime)
     {
+        Hayate_Log::info(__METHOD__);
         return true;
     }
 }

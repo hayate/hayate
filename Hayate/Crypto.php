@@ -134,6 +134,7 @@ class Hayate_Crypto
         if (empty($data)) return;
 
         $in = base64_decode($data);
+
         // retrieve IV from decoded $data
         $this->iv = substr($in, 0, $this->ivsize);
         $ciphertext = substr($in, $this->ivsize);
