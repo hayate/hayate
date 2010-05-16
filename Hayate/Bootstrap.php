@@ -21,6 +21,7 @@ final class Hayate_Bootstrap
     const REQUIRED_PHP_VERSION = '5.2.0';
     private static $instance = null;
     private $hayatePath;
+    private $modelsPath;
 
     private function __construct()
     {
@@ -35,7 +36,6 @@ final class Hayate_Bootstrap
             throw new Hayate_Exception(sprintf(_('Hayate requires PHP >= %s, but %s is installed.'),
                                                self::REQUIRED_PHP_VERSION, PHP_VERSION));
         }
-
         // register error handler
         set_error_handler('Hayate_Bootstrap::error_handler');
 
@@ -46,13 +46,15 @@ final class Hayate_Bootstrap
                 spl_autoload_register('__autoload');
             }
         }
-        spl_autoload_register(array($this, 'autoload'));
 
+        spl_autoload_register(array($this, 'autoload'));
         // register exception handler
         set_exception_handler(array(Hayate_Dispatcher::getInstance(), 'exceptionDispatch'));
 
         // load main config
         $config = Hayate_Config::load();
+        // to autoload models class
+        $this->modelsPath = $config->get('database.models_dir', array());
 
         if (false !== $config->get('error_reporting', false))
         {
@@ -130,7 +132,30 @@ final class Hayate_Bootstrap
 
     public function autoload($classname)
     {
-        $filepath = $this->hayatePath .'/'. str_replace('_', DIRECTORY_SEPARATOR, $classname) .'.php';
+        if (false !== ($pos = strpos($classname, '_Model')))
+        {
+            $classname = substr($classname, 0, $pos);
+            if (is_string($this->modelsPath))
+            {
+                $filepath = realpath($this->modelsPath . DIRECTORY_SEPARATOR . $classname . '.php');
+            }
+            else if (is_array($this->modelsPath))
+            {
+                foreach ($this->modelsPath as $path)
+                {
+                    $fp = realpath($path . DIRECTORY_SEPARATOR . $classname . '.php');
+                    if (false !== $fp)
+                    {
+                        $filepath = $fp;
+                        break;
+                    }
+                }
+            }
+        }
+        if (! isset($filepath))
+        {
+            $filepath = $this->hayatePath .'/'. str_replace('_', DIRECTORY_SEPARATOR, $classname) .'.php';
+        }
         if (is_file($filepath))
         {
             require_once $filepath;
