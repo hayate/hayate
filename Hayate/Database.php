@@ -37,7 +37,7 @@ class Hayate_Database
         }
     }
 
-    public static function instance($name = 'default')
+    public static function getInstance($name = 'default')
     {
         if (isset(self::$db[$name]))
         {

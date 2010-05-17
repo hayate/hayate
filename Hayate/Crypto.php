@@ -66,7 +66,7 @@ class Hayate_Crypto
         $this->maxKeysize = mcrypt_enc_get_key_size($this->mcrypt);
 
         $config = Hayate_Config::getInstance();
-        if (isset($config->core->secret_key))
+        if ($config->get('core.secret_key', false))
         {
             $this->setKey($config->core->secret_key);
         }
@@ -98,7 +98,7 @@ class Hayate_Crypto
 
     public function encrypt($data)
     {
-        if (empty($data)) return;
+        if (empty($data)) return '';
 
         // generate initialization vector
         $this->iv = mcrypt_create_iv($this->ivsize, MCRYPT_RAND);
@@ -131,7 +131,7 @@ class Hayate_Crypto
      */
     public function decrypt($data)
     {
-        if (empty($data)) return;
+        if (empty($data)) return '';
 
         $in = base64_decode($data);
 

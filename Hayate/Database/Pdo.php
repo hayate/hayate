@@ -21,7 +21,7 @@
  */
 class Hayate_Database_Pdo extends PDO
 {
-    protected $fecth_mode;
+    protected $fetchMode;
     protected $lastQuery;
 
     // query builder
@@ -376,10 +376,13 @@ class Hayate_Database_Pdo extends PDO
         if (is_int($offset)) {
             $this->offset = $offset;
         }
-        $sql = $this->compile_select();
+        $sql = $this->compileSelect();
         return $this->execute($sql, array(), $model);
     }
 
+    /**
+     * @return mixed Returns false if the record is not found
+     */
     public function get($table = null, $model = null)
     {
         if (! empty($table) && is_string($table)) {
@@ -387,7 +390,7 @@ class Hayate_Database_Pdo extends PDO
         }
         $this->limit = 1;
         $this->offset = 0;
-        $sql = $this->compile_select();
+        $sql = $this->compileSelect();
 
         $mode = $this->fetchMode;
         try {

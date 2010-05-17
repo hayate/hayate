@@ -24,30 +24,33 @@ class Hayate_Session
     protected function __construct()
     {
         $this->config = Hayate_Config::load('session');
-        $driver = isset($this->config->session->driver) ? $this->config->session->driver : 'cookie';
+        $driver = isset($this->config->session->driver) ? $this->config->session->driver : 'native';
         switch ($driver)
         {
-        case 'cookie':
-            $ses = Hayate_Session_Cookie::getInstance();
-            break;
         case 'database':
             $ses = Hayate_Session_Database::getInstance();
+            session_set_save_handler(array($ses, 'open'), array($ses, 'close'), array($ses, 'read'),
+                                     array($ses, 'write'), array($ses, 'destroy'), array($ses, 'gc'));
             break;
         case 'native':
-            init_set('session.use_only_cookies', true);
-            init_set('session.use_trans_sid', false);
             break;
         default:
             throw new Hayate_Exception(sprintf(_('Session driver: "%s" not supported.'), $driver));
         }
-        if (isset($ses))
-        {
-            session_set_save_handler(array($ses, 'open'), array($ses, 'close'), array($ses, 'read'),
-                                     array($ses, 'write'), array($ses, 'destroy'), array($ses, 'gc'));
-        }
-
         Hayate_Event::add('hayate.shutdown', 'session_write_close');
-        $this->create();
+        ini_set('session.use_only_cookies', true);
+        ini_set('session.use_trans_sid', false);
+        session_name($this->config->get('session.name', 'HayateSession'));
+
+        session_set_cookie_params($this->config->get('session.lifetime', 0),
+                                  $this->config->get('session.path', '/'),
+                                  $this->config->get('session.domain', $_SERVER['SERVER_NAME']),
+                                  $this->config->get('session.secure', false),
+                                  $this->config->get('session.httponly', false));
+        //ini_set('session.gc_probability', 100);
+        //ini_set('session.gc_divisor', 100);
+        session_start();
+        Hayate_Log::info(sprintf(_('%s initialized.'), __CLASS__));
     }
 
     public static function getInstance()
@@ -57,22 +60,6 @@ class Hayate_Session
             self::$instance = new self();
         }
         return self::$instance;
-    }
-
-    public function create()
-    {
-        $this->destroy();
-        $cookie = Hayate_Cookie::getInstance();
-        $session_name = isset($this->config->session->name) ? $this->config->session->name : 'HayateSession';
-        // only letters, numbers and underscore, at least one letter must be present
-        if (preg_match('/^\d*[a-z][a-z0-9_]*$/i', $session_name) != 1)
-        {
-            throw new Hayate_Exception(sprintf(_('Invalid session name: %s'), $session_name));
-        }
-        // set session name
-        session_name($session_name);
-        // start the session
-        session_start();
     }
 
     public function set($name, $value = null)
@@ -95,9 +82,26 @@ class Hayate_Session
         {
             return $_SESSION;
         }
-        if (isset($_SESSION[$name]))
+        if (array_key_exists($name, $_SESSION))
         {
             return $_SESSION[$name];
+        }
+        return $default;
+    }
+
+    public function getOnce($name = null, $default = null)
+    {
+        if (null === $name)
+        {
+            $ans = $_SESSION;
+            $_SESSION = array();
+            return $ans;
+        }
+        if (array_key_exists($name, $_SESSION))
+        {
+            $value = $_SESSION[$name];
+            unset($_SESSION[$name]);
+            return $value;
         }
         return $default;
     }
@@ -109,11 +113,30 @@ class Hayate_Session
 
     public function destroy()
     {
-        if ('' !== session_id())
+        session_destroy();
+    }
+
+    public function id()
+    {
+        return session_id();
+    }
+
+    /**
+     * @param string|array $name A session key to delete or an array
+     * of session keys to delete
+     */
+    public function delete($name)
+    {
+        if (is_array($name))
         {
-            $name = session_name();
-            session_destroy();
-            Hayate_Cookie::getInstance()->delete($name);
+            foreach ($name as $key) $this->delete($key);
+        }
+        else if (is_string($name))
+        {
+            if (isset($_SESSION[$name]))
+            {
+                unset($_SESSION[$name]);
+            }
         }
     }
 

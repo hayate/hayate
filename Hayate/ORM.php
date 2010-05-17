@@ -102,10 +102,10 @@ abstract class Hayate_ORM
             return $this;
         }
         catch (Hayate_Database_Exception $ex) {
-            throw new Hayate_ORM_Exception($ex);
+            throw $ex;
         }
         catch (Exception $ex) {
-            throw new Hayate_ORM_Exception($ex);
+            throw new Hayate_Database_Exception($ex);
         }
     }
 
@@ -116,52 +116,36 @@ abstract class Hayate_ORM
 
     public function find($id = null)
     {
-        try {
-            if (null !== $id)
-            {
-                $this->load($id);
-            }
-            else {
-                $this->db->get($this->table_name, $this);
-            }
-            return $this;
+        if (null !== $id)
+        {
+            $this->load($id);
         }
-        catch (Hayate_Database_Exception $ex) {
-            throw new Hayate_ORM_Exception($ex);
+        else {
+            $this->db->get($this->table_name, $this);
         }
+        return $this;
     }
 
     public function find_all($limit = null, $offset = null)
     {
-        try {
-            return $this->db->orderby($this->orderby)
-                ->get_all($this->table_name, get_class($this), $limit, $offset);
-        }
-        catch (Hayate_Database_Exception $ex) {
-            throw new Hayate_ORM_Exception($ex);
-        }
+        return $this->db->orderby($this->orderby)
+            ->get_all($this->table_name, get_class($this), $limit, $offset);
     }
 
     public function delete($id = null)
     {
-        try {
-            if (null !== $id)
+        if (null !== $id)
+        {
+            $this->delete($this->table_name, array($this->unique_key($id) => $id));
+        }
+        else {
+            if (! $this->loaded())
             {
-                $this->delete($this->table_name, array($this->unique_key($id) => $id));
+                $this->db->get($this->table_name, $this);
             }
-            else {
-                if (! $this->loaded())
-                {
-                    $this->db->get($this->table_name, $this);
-                }
-                $pk = $this->primary_key;
-                $this->delete($this->table_name, array($this->primary_key => $this->$pk));
-            }
-            return $this;
+            $this->delete($this->table_name, array($this->primary_key => $this->{$this->primary_key}));
         }
-        catch (Hayate_Database_Exception $ex) {
-            throw new Hayate_ORM_Exception($ex);
-        }
+        return $this;
     }
 
     /**
@@ -174,7 +158,10 @@ abstract class Hayate_ORM
         $ret = array();
         foreach ($this->fields as $field => $obj)
         {
-            if (! $primary_key && ($field == $this->primary_key)) continue;
+            if (! $primary_key && ($field == $this->primary_key))
+            {
+                continue;
+            }
             $ret[$field] = $obj->value;
         }
         return $ret;
@@ -208,7 +195,7 @@ abstract class Hayate_ORM
             $this->fields[$name]->value = $value;
         }
         else {
-            throw new Hayate_ORM_Exception(sprintf(_('Field %s does not exists.'), $name));
+            throw new Hayate_Database_Exception(sprintf(_('Field %s does not exists.'), $name));
         }
     }
 
@@ -231,7 +218,7 @@ abstract class Hayate_ORM
 
     public function __toString()
     {
-        return print_r($this->fields, true);
+        return print_r($this->as_array(true), true);
     }
 
     protected function addField($name, $value = null)
