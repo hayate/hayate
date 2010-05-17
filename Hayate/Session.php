@@ -47,8 +47,6 @@ class Hayate_Session
                                   $this->config->get('session.domain', $_SERVER['SERVER_NAME']),
                                   $this->config->get('session.secure', false),
                                   $this->config->get('session.httponly', false));
-        //ini_set('session.gc_probability', 100);
-        //ini_set('session.gc_divisor', 100);
         session_start();
         Hayate_Log::info(sprintf(_('%s initialized.'), __CLASS__));
     }
