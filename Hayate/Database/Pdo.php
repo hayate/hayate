@@ -23,6 +23,7 @@ class Hayate_Database_Pdo extends PDO
 {
     protected $fetchMode;
     protected $lastQuery;
+    protected $countQuery;
 
     // query builder
     protected $select;
@@ -40,6 +41,7 @@ class Hayate_Database_Pdo extends PDO
     public function __construct(array $config)
     {
         $this->fetchMode = (isset($config['object']) && (true === $config['object'])) ? PDO::FETCH_OBJ : PDO::FETCH_ASSOC;
+        $this->countQuery = '';
         $this->reset();
 
         // sanity checks
@@ -365,7 +367,7 @@ class Hayate_Database_Pdo extends PDO
         $this->distinct = (bool)$value;
     }
 
-    public function get_all($table = null, $model = null, $limit = null, $offset = null)
+    public function getAll($table = null, $model = null, $limit = null, $offset = null)
     {
         if (! empty($table) && is_string($table)) {
             $this->from($table);
@@ -469,15 +471,14 @@ class Hayate_Database_Pdo extends PDO
 
             // log the query
             Hayate_Log::info($stm->queryString);
-
             // reset query builder's properties after each query
             $this->reset();
             //
-            if (preg_match('/^DELETE|INSERT|UPDATE/i', $query) == 1)
+            if (preg_match('/^DELETE|INSERT|UPDATE/i', $query) != 1)
             {
-                return $stm->rowCount();
+                return new Hayate_Database_Iterator($stm, $model, $this->fetchMode);
             }
-            return new Hayate_Database_Iterator($stm, $this, $model);
+            return $stm->rowCount();
         }
         catch (PDOException $ex) {
             throw new Hayate_Database_Exception($ex);
@@ -509,6 +510,11 @@ class Hayate_Database_Pdo extends PDO
         return $this->lastQuery;
     }
 
+    public function countQuery()
+    {
+        return $this->countQuery;
+    }
+
     public function lastInsertId($name = null)
     {
         if (is_null($name))
@@ -524,8 +530,13 @@ class Hayate_Database_Pdo extends PDO
         return parent::lastInsertId($name);
     }
 
+    public function getFetchMode()
+    {
+        return $this->fetchMode;
+    }
+
     /**
-     * Called by the "get" method
+     * Called by the "get" and "getAll" methods
      */
     protected function compileSelect()
     {

@@ -37,7 +37,7 @@ abstract class Hayate_ORM
             $this->table_name = strtolower(str_ireplace('_model', '', get_class($this)));
         }
         $this->setFields();
-        $this->db = Hayate_Database::instance($this->dbconfig);
+        $this->db = Hayate_Database::getInstance($this->dbconfig);
         $this->loaded = false;
         $this->orderby = array($this->primary_key => 'ASC');
         if (null !== $id)
@@ -63,7 +63,7 @@ abstract class Hayate_ORM
 
     public function load($id)
     {
-        $this->db->where($this->unique_key($id), $id)
+        $this->db->where($this->primaryField($id), $id)
             ->get($this->table_name, $this);
         $this->loaded = true;
     }
@@ -90,12 +90,12 @@ abstract class Hayate_ORM
         try {
             if (empty($this->{$this->primary_key}))
             {
-                $this->db->insert($this->table_name, $this->as_array(false));
+                $this->db->insert($this->table_name, $this->asArray(false));
                 $this->{$this->primary_key} = $this->db->lastInsertId();
             }
             else
             {
-                $this->db->update($this->table_name, $this->as_array(false),
+                $this->db->update($this->table_name, $this->asArray(false),
                                   array($this->primary_key => $this->{$this->primary_key}));
             }
             $this->loaded = true;
@@ -109,7 +109,7 @@ abstract class Hayate_ORM
         }
     }
 
-    public function unique_key($id)
+    public function primaryField($id)
     {
         return $this->primary_key;
     }
@@ -126,17 +126,17 @@ abstract class Hayate_ORM
         return $this;
     }
 
-    public function find_all($limit = null, $offset = null)
+    public function findAll($limit = null, $offset = null)
     {
         return $this->db->orderby($this->orderby)
-            ->get_all($this->table_name, get_class($this), $limit, $offset);
+            ->getAll($this->table_name, get_class($this), $limit, $offset);
     }
 
     public function delete($id = null)
     {
         if (null !== $id)
         {
-            $this->delete($this->table_name, array($this->unique_key($id) => $id));
+            $this->delete($this->table_name, array($this->primaryField($id) => $id));
         }
         else {
             if (! $this->loaded())
@@ -153,7 +153,7 @@ abstract class Hayate_ORM
      *
      * @return array The model as associative array
      */
-    public function as_array($primary_key = true)
+    public function asArray($primary_key = true)
     {
         $ret = array();
         foreach ($this->fields as $field => $obj)
@@ -165,6 +165,19 @@ abstract class Hayate_ORM
             $ret[$field] = $obj->value;
         }
         return $ret;
+    }
+
+    public function fromArray(array $fields)
+    {
+        foreach ($fields as $name => $value)
+        {
+            $this->$name = $value;
+        }
+        if (! empty($this->{$this->primary_key}))
+        {
+            $this->loaded = true;
+        }
+        return $this;
     }
 
     public function __call($method, array $args)
@@ -218,7 +231,7 @@ abstract class Hayate_ORM
 
     public function __toString()
     {
-        return print_r($this->as_array(true), true);
+        return print_r($this->asArray(true), true);
     }
 
     protected function addField($name, $value = null)

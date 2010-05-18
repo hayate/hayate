@@ -18,38 +18,27 @@
  */
 /**
  * @package Hayate_Database
- * @version 1.0
  */
 class Hayate_Database_Iterator implements Iterator, Countable
 {
-    protected $stm;
-    protected $pdo;
+    protected $rows;
     protected $offset;
     protected $model;
-    protected $fetch_mode;
-    protected $row;
+    protected $rowCount;
 
-    public function __construct(PDOStatement $stm, Hayate_Database_Pdo $pdo, $model = null)
+    public function __construct(PDOStatement $stm, $model = null, $fetchMode = PDO::FETCH_OBJ)
     {
-        $this->stm = $stm;
-        $this->pdo = $pdo;
-        $this->row = false;
-
+        $this->offset = 0;
         if (is_string($model))
         {
-            $this->fetch_mode = PDO::FETCH_INTO;
-            $this->model = strtolower(str_ireplace('model_', '', $model));
+            $this->rows = $stm->fetchAll(PDO::FETCH_ASSOC);
+            $this->model = strtolower(str_ireplace('_model', '', $model));
         }
         else {
-            $this->fetch_mode = $pdo->fetch_mode;
-            $this->stm->setFetchMode($pdo->fetch_mode);
+            $this->rows = $stm->fetchAll($fetchMode);
+            $this->model = null;
         }
-        $this->rewind();
-    }
-
-    public function __destruct()
-    {
-        $this->stm->closeCursor();
+        $this->rowCount = count($this->rows);
     }
 
     /**
@@ -57,14 +46,7 @@ class Hayate_Database_Iterator implements Iterator, Countable
      */
     public function count()
     {
-        $match = array();
-        if (preg_match('/^select(.+)from.+/i', $this->stm->queryString, $match) != 1)
-        {
-            return $this->stm->rowCount();
-        }
-        $count_query = preg_replace('/'.preg_quote($match[1]).'/', ' COUNT(*) ', $this->stm->queryString, 1);
-        $stm = $this->pdo->query($count_query);
-        return $stm->fetchColumn();
+        return $this->rowCount;
     }
 
     /**
@@ -73,15 +55,6 @@ class Hayate_Database_Iterator implements Iterator, Countable
     public function rewind()
     {
         $this->offset = 0;
-        if ($this->fetch_mode == PDO::FETCH_INTO)
-        {
-            $this->row = ORM::factory($this->model);
-            $this->stm->setFetchMode(PDO::FETCH_INTO, $this->row);
-            $this->row = $this->stm->fetch(PDO::FETCH_INTO);
-        }
-        else {
-            $this->row = $this->stm->fetch($this->fetch_mode, PDO::FETCH_ORI_FIRST);
-        }
     }
 
     /**
@@ -89,7 +62,12 @@ class Hayate_Database_Iterator implements Iterator, Countable
      */
     public function current()
     {
-        return $this->row;
+        if ($this->model)
+        {
+            $orm = Hayate_ORM::factory($this->model);
+            return $orm->fromArray($this->rows[$this->offset]);
+        }
+        return $this->rows[$this->offset];
     }
 
     /**
@@ -105,15 +83,6 @@ class Hayate_Database_Iterator implements Iterator, Countable
      */
     public function next()
     {
-        if ($this->fetch_mode == PDO::FETCH_INTO)
-        {
-            $this->row = ORM::factory($this->model);
-            $this->stm->setFetchMode(PDO::FETCH_INTO, $this->row);
-            $this->row = $this->stm->fetch(PDO::FETCH_INTO);
-        }
-        else {
-            $this->row = $this->stm->fetch($this->fetch_mode, PDO::FETCH_ORI_NEXT);
-        }
         ++$this->offset;
     }
 
@@ -122,6 +91,6 @@ class Hayate_Database_Iterator implements Iterator, Countable
      */
     public function valid()
     {
-        return ($this->row !== false);
+        return ($this->rowCount > $this->offset);
     }
 }
