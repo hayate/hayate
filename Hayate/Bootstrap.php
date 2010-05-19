@@ -138,7 +138,12 @@ final class Hayate_Bootstrap
 
     public function autoload($classname)
     {
-        if (false !== ($pos = strpos($classname, '_Model')))
+        if ('Hayate' == substr($classname, 0, 6))
+        {
+            $classpath = str_replace('_', DIRECTORY_SEPARATOR, $classname) .'.php';
+            $filepath = $this->hayatePath .'/'.$classpath;
+        }
+        else if (false !== ($pos = strpos($classname, '_Model')))
         {
             $classname = substr($classname, 0, $pos);
             if (is_string($this->modelsPath))
@@ -158,10 +163,20 @@ final class Hayate_Bootstrap
                 }
             }
         }
-        if (! isset($filepath))
+        else if ('Controller' == substr($classname, -10))
         {
+            $classname = strtolower($classname);
+            $pos = strpos($classname, '_');
+            $module = substr($classname, 0, $pos);
+            $controller = str_replace('controller', '', substr($classname, ++$pos));
+            if (in_array($module, self::modules()))
+            {
+                $filepath = MODPATH . $module . '/controllers/'.$controller.'.php';
+            }
+        }
+        else {
             $classpath = str_replace('_', DIRECTORY_SEPARATOR, $classname) .'.php';
-            $filepath = is_file($this->hayatePath .'/'.$classpath) ? $this->hayatePath .'/'.$classpath : LIBPATH . $classpath;
+            $filepath = LIBPATH . $classpath;
         }
         if (is_file($filepath))
         {

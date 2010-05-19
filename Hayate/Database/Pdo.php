@@ -69,6 +69,8 @@ class Hayate_Database_Pdo extends PDO
                 switch ($driver)
                 {
                 case 'mysql':
+					$stmt = $this->prepare("SET NAMES ?");
+				break;
                 case 'pgsql':
                     $stmt = $this->prepare("SET NAMES '?'");
                 break;
@@ -402,7 +404,7 @@ class Hayate_Database_Pdo extends PDO
                 $mode = PDO::FETCH_CLASS;
                 $stm = $this->query($sql, $mode, $model, array());
                 break;
-            case ($model instanceof ORM):
+            case ($model instanceof Hayate_ORM):
                 $mode = PDO::FETCH_INTO;
                 $stm = $this->query($sql, $mode, $model);
                 break;
