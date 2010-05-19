@@ -83,7 +83,7 @@ class Hayate_Database_Pdo extends PDO
             }
         }
         catch (PDOException $ex) {
-            Hayate_Log::error($ex->errorInfo);
+            Hayate_Log::error($ex->errorInfo, true);
             throw new Hayate_Database_Exception($ex);
         }
         catch (Exception $ex) {
