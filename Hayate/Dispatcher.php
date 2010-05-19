@@ -67,7 +67,7 @@ class Hayate_Dispatcher
                 require_once $bs;
             }
             require_once $filepath;
-            $classname = ucfirst($this->module).'_'.ucfirst($this->controller);
+            $classname = ucfirst($this->module).'_'.ucfirst($this->controller).'Controller';
             $rfc = new ReflectionClass($classname);
             if ($rfc->isSubclassOf('Hayate_Controller') && $rfc->isInstantiable())
             {
