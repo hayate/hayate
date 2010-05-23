@@ -154,9 +154,29 @@ class Hayate_Validator extends ArrayObject
         }
     }
 
-    public function errors()
+    /**
+     * @param string $field The field errors, if null return all the
+     * errors
+     * @param bool $first If true only return the first error, else
+     * return all field errors
+     * @return array|string An array of errors or a string with the
+     * first error
+     */
+    public function errors($field = null, $first = false)
     {
-        return $this->errors;
+	if (null === $field)
+	{
+	    return $this->errors;
+	}
+	else if (array_key_exists($field, $this->errors))
+	{
+	    if (false !== $first)
+	    {
+		return $this->errors[$field][0];
+	    }
+	    return $this->errors[$field];
+	}
+	return $first ? '' : array();
     }
 
     public function asArray()
@@ -164,13 +184,23 @@ class Hayate_Validator extends ArrayObject
         return $this->getArrayCopy();
     }
 
-    public function __isset($name)
+    public function offsetExists($name)
     {
-        if (array_key_exists($name, $this))
-        {
-            return (false === empty($this[$name]));
-        }
-        return false;
+	if (parent::offsetExists($name))
+	{
+	    $value = $this->offsetGet($name);
+	    return (false === empty($value));
+	}
+	return false;
+    }
+
+    public function get($name, $default = null)
+    {
+	if (isset($this->$name))
+	{
+	    return $this->$name;
+	}
+	return $default;
     }
 
     protected function fieldName($field)

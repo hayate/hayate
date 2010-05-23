@@ -88,6 +88,9 @@ class Hayate_URI
         $path = '';
         switch (true)
         {
+        case isset($_SERVER['REQUEST_URI']):
+            $path = $_SERVER['REQUEST_URI'];
+            break;
         case isset($_SERVER['PATH_INFO']):
             $path = $_SERVER['PATH_INFO'];
             break;

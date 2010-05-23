@@ -69,8 +69,8 @@ class Hayate_Database_Pdo extends PDO
                 switch ($driver)
                 {
                 case 'mysql':
-					$stmt = $this->prepare("SET NAMES ?");
-				break;
+		    $stmt = $this->prepare("SET NAMES ?");
+		    break;
                 case 'pgsql':
                     $stmt = $this->prepare("SET NAMES '?'");
                 break;
@@ -262,6 +262,35 @@ class Hayate_Database_Pdo extends PDO
         }
         $sql = "UPDATE ".$table." SET ".implode(', ', $sets)." WHERE ".implode(' ', $this->where);
         return $this->exec($sql);
+    }
+
+    public function exec($sql)
+    {
+	$this->reset();
+	return parent::exec($sql);
+    }
+
+    public function query($sql)
+    {
+	$this->reset();
+	$argc = func_num_args();
+	switch ($argc)
+	{
+	case 2:
+	    $mode = func_get_arg(1);
+	    return parent::query($sql, $mode);
+	case 3:
+	    $mode = func_get_arg(1);
+	    $arg3 = func_get_arg(2);
+	    return parent::query($sql, $mode, $arg3);
+	case 4:
+	    $mode = func_get_arg(1);
+	    $arg3 = func_get_arg(2);
+	    $arg4 = func_get_arg(3);
+	    return parent::query($sql, $mode, $arg3, $arg4);
+	default:
+	    return parent::query($sql);
+	}
     }
 
     /**

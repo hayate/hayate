@@ -18,17 +18,15 @@
  */
 /**
  * @package Hayate_View
- * @version 1.0
  */
-class Hayate_View_Native implements Hayate_View_Interface
+class Hayate_View_Native extends Hayate_View_Abstract implements Hayate_View_Interface
 {
     protected static $instance = null;
 
     protected function __construct()
     {
         $include_path = rtrim(get_include_path(),PATH_SEPARATOR).PATH_SEPARATOR;
-        $modules = Hayate_Config::getInstance()->get('modules', array());
-        $modules[] = Hayate_Config::getInstance()->get('default_module', 'default');
+        $modules = Hayate_Bootstrap::modules();
         foreach ($modules as $module)
         {
             $viewpath = MODPATH . $module.DIRECTORY_SEPARATOR.'views';

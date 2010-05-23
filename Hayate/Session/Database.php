@@ -66,7 +66,6 @@ class Hayate_Session_Database implements Hayate_Session_Interface
      */
     public function close()
     {
-        Hayate_Log::info(__METHOD__);
         return true;
     }
 
@@ -100,7 +99,6 @@ class Hayate_Session_Database implements Hayate_Session_Interface
      */
     public function write($id, $data)
     {
-        Hayate_Log::info(__METHOD__);
         try {
             $ses = $this->getSession($id);
             // prepare fields
@@ -122,7 +120,7 @@ class Hayate_Session_Database implements Hayate_Session_Interface
             return true;
         }
         catch (Exception $ex) {
-            Hayate_Log::error($ex, true);
+            error_log("{$ex}");
         }
         return false;
     }
@@ -168,8 +166,8 @@ class Hayate_Session_Database implements Hayate_Session_Interface
     protected function getSession($id, $mode = PDO::FETCH_OBJ)
     {
         try {
-            $stm = $this->db->prepare('SELECT * FROM sessions WHERE session_id=? LIMIT 1');
-            $stm->bindValue(1, $id, PDO::PARAM_STR);
+            $stm = $this->db->prepare('SELECT * FROM sessions WHERE session_id=:id LIMIT 1');
+            $stm->bindValue(':id', $id, PDO::PARAM_STR);
             $stm->execute();
             $ses = $stm->fetch($mode);
             $stm->closeCursor();

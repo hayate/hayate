@@ -65,7 +65,7 @@ abstract class Hayate_ORM
     {
         $this->db->where($this->primaryField($id), $id)
             ->get($this->table_name, $this);
-        $this->loaded = true;
+        $this->loaded = !empty($this->{$this->primary_key});
     }
 
     public function loaded()

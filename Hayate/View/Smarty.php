@@ -18,9 +18,8 @@
  */
 /**
  * @package Hayate_View
- * @version 1.0
  */
-class Hayate_View_Smarty implements Hayate_View_Interface
+class Hayate_View_Smarty extends Hayate_View_Abstract implements Hayate_View_Interface
 {
     protected static $instance = null;
     protected $smarty;

@@ -113,7 +113,7 @@ class Hayate_Dispatcher
             if (is_file($filepath))
             {
                 require_once $filepath;
-                $classname = ucfirst($module).'_Error';
+                $classname = ucfirst($module).'_ErrorController';
                 $rfc = new ReflectionClass($classname);
                 if ($rfc->isSubclassOf('Hayate_Controller') && $rfc->isInstantiable())
                 {
@@ -134,9 +134,7 @@ class Hayate_Dispatcher
                 }
             }
         }
-        catch(Exception $ex){
-            var_dump($ex);
-        }
+        catch(Exception $ex){}
     }
 
     public function module($name = null)
