@@ -138,6 +138,15 @@ class Hayate_URI
         return 'http';
     }
 
+    public function toUrl($path)
+    {
+	if (false !== stripos($path, 'http'))
+	{
+	    return $path;
+	}
+	return 'http://'.$this->hostname() .'/'.ltrim($path, '/');
+    }
+
     public function __toString()
     {
         return $this->current;

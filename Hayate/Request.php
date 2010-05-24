@@ -67,6 +67,12 @@ class Hayate_Request
 	return $this->method == 'put';
     }
 
+    public function isAjax()
+    {
+	return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+		strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+    }
+
     /**
      * Note: only http status 302 supported
      * Note: if http schema is not present, the given location is

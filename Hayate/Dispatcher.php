@@ -89,6 +89,7 @@ class Hayate_Dispatcher
         }
         else if (true !== Hayate_Event::run('hayate.404', array($this)))
         {
+	    $this->errorReporter->setStatus(404);
             throw new Hayate_Exception(sprintf(_('Requested page: "%s" not found.'), Hayate_URI::getInstance()->current()), 404);
         }
     }
@@ -129,8 +130,10 @@ class Hayate_Dispatcher
                 $display_errors = Hayate_Config::getInstance()->get('display_errors', false);
                 if ($display_errors && $this->errorReporter)
                 {
+		    Hayate_Event::remove('hayate.send_headers');
+		    Hayate_Event::remove('hayate.render');
                     $this->errorReporter->setException($ex);
-                    $this->errorReporter->report();
+                    echo $this->errorReporter->report();
                 }
             }
         }

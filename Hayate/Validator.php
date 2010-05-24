@@ -164,9 +164,18 @@ class Hayate_Validator extends ArrayObject
      */
     public function errors($field = null, $first = false)
     {
-	if (null === $field)
+	if (null === $field && !$first)
 	{
 	    return $this->errors;
+	}
+	else if (null === $field && $first)
+	{
+	    $keys = array_keys($this->errors);
+	    if (count($keys))
+	    {
+		return $this->errors[$keys[0]][0];
+	    }
+	    return '';
 	}
 	else if (array_key_exists($field, $this->errors))
 	{

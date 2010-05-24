@@ -64,6 +64,26 @@ class Hayate_Session
         return self::$instance;
     }
 
+    public function __get($name)
+    {
+	return $this->get($name);
+    }
+
+    public function __set($name, $value)
+    {
+	$this->set($name, $value);
+    }
+
+    public function __isset($name)
+    {
+	return $this->exists($name);
+    }
+
+    public function __unset($name)
+    {
+	$this->delete($name);
+    }
+
     public function set($name, $value = null)
     {
         if (is_array($name))
@@ -110,7 +130,11 @@ class Hayate_Session
 
     public function exists($name)
     {
-	return array_key_exists($name, $_SESSION);
+	if (array_key_exists($name, $_SESSION))
+	{
+	    return (null !== $_SESSION[$name]);
+	}
+	return false;
     }
 
     public function regenerate()
@@ -140,10 +164,7 @@ class Hayate_Session
         }
         else if (is_string($name))
         {
-            if (isset($_SESSION[$name]))
-            {
-                unset($_SESSION[$name]);
-            }
+	    unset($_SESSION[$name]);
         }
     }
 

@@ -25,10 +25,13 @@ abstract class Hayate_ORM
     protected $dbconfig = 'default';
     protected $fields = array();
     protected $primary_key = 'id';
-    protected $foreign_key;
     protected $loaded;
     protected $table_name;
+    protected $class_name;
     protected $orderby = array();
+    protected $hasOne = array();
+    protected $hasMany = array();
+    protected $cache = array();
 
 
     public function __construct($id = null)
@@ -36,6 +39,10 @@ abstract class Hayate_ORM
         if (! isset($this->table_name)) {
             $this->table_name = strtolower(str_ireplace('_model', '', get_class($this)));
         }
+	if (! isset($this->class_name))
+	{
+	    $this->class_name = strtolower(str_ireplace('_model', '', get_class($this)));
+	}
         $this->setFields();
         $this->db = Hayate_Database::getInstance($this->dbconfig);
         $this->loaded = false;
@@ -198,6 +205,34 @@ abstract class Hayate_ORM
         {
             return $this->fields[$name]->value;
         }
+	else if (isset($this->cache[$name]))
+	{
+	    return $this->cache[$name];
+	}
+	else if (in_array($name, $this->hasOne))
+	{
+	    $fk = $name.'_id';
+	    $orm = Hayate_ORM::factory($name, $this->$fk);
+	    if ($orm->loaded())
+	    {
+		$this->cache[$name] = $orm;
+		return $orm;
+	    }
+	    return null;
+	}
+	else if (in_array($name, $this->hasMany))
+	{
+	    $fk = $this->class_name.'_id';
+	    $orm = Hayate_ORM::factory($name)
+		->where($fk, $this->{$this->primary_key})
+		->findAll();
+	    if ($orm instanceof Hayate_Database_Iterator)
+	    {
+		$this->cache[$name] = $orm;
+		return $orm;
+	    }
+	    return null;
+	}
         throw new Hayate_Database_Exception(sprintf(_('Field %s does not exists.'), $name));
     }
 
