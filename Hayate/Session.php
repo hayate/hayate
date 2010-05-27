@@ -39,12 +39,16 @@ class Hayate_Session
         }
         Hayate_Event::add('hayate.shutdown', 'session_write_close');
         ini_set('session.use_only_cookies', true);
-        ini_set('session.use_trans_sid', false);
+        ini_set('session.use_trans_sid', 0);
         session_name($this->config->get('session.name', 'HayateSession'));
+
+	// session will not work with a domain without top level
+	$domain = $this->config->get('session.domain', $_SERVER['SERVER_NAME']);
+	if (preg_match('/\.?.+\..+/', $domain) != 1) $domain = '';
 
         session_set_cookie_params($this->config->get('session.lifetime', 0),
                                   $this->config->get('session.path', '/'),
-                                  $this->config->get('session.domain', $_SERVER['SERVER_NAME']),
+				  $domain,
                                   $this->config->get('session.secure', false),
                                   $this->config->get('session.httponly', false));
         session_start();
@@ -58,6 +62,26 @@ class Hayate_Session
             self::$instance = new self();
         }
         return self::$instance;
+    }
+
+    public function __get($name)
+    {
+	return $this->get($name);
+    }
+
+    public function __set($name, $value)
+    {
+	$this->set($name, $value);
+    }
+
+    public function __isset($name)
+    {
+	return $this->exists($name);
+    }
+
+    public function __unset($name)
+    {
+	$this->delete($name);
     }
 
     public function set($name, $value = null)
@@ -97,11 +121,20 @@ class Hayate_Session
         }
         if (array_key_exists($name, $_SESSION))
         {
-            $value = $_SESSION[$name];
-            unset($_SESSION[$name]);
+            $value = $this->get($name, $default);
+	    $this->delete($name);
             return $value;
         }
         return $default;
+    }
+
+    public function exists($name)
+    {
+	if (array_key_exists($name, $_SESSION))
+	{
+	    return (null !== $_SESSION[$name]);
+	}
+	return false;
     }
 
     public function regenerate()
@@ -131,10 +164,7 @@ class Hayate_Session
         }
         else if (is_string($name))
         {
-            if (isset($_SESSION[$name]))
-            {
-                unset($_SESSION[$name]);
-            }
+	    unset($_SESSION[$name]);
         }
     }
 

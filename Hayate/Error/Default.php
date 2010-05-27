@@ -39,8 +39,7 @@ class Hayate_Error_Default extends Hayate_Error_Abstract
 
     public function format()
     {
-        ob_start();
-        echo <<<___ERROR_HTML
+        $output = <<<___ERROR_HTML
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
@@ -77,6 +76,6 @@ class Hayate_Error_Default extends Hayate_Error_Abstract
 </body>
 </html>
 ___ERROR_HTML;
-        return ob_get_flush();
+	return $output;
     }
 }

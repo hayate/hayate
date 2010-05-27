@@ -18,7 +18,6 @@
  */
 /**
  * @package Hayate
- * @version 1.0
  */
 class Hayate_View
 {
@@ -74,6 +73,26 @@ class Hayate_View
         else if (!empty($name)) {
             $this->vars[$name] = $value;
         }
+    }
+
+    public function style($href = null, $media = 'screen', $type = 'text/css')
+    {
+	return $this->view->style($style);
+    }
+
+    public function jscript($src = null, $type = 'text/javascript', $charset = 'UTF-8')
+    {
+	return $this->view->jscript($src, $type, $charset);
+    }
+
+    public function meta($name = null, $content = null, $scheme = null)
+    {
+	return $this->view->meta($name, $content, $scheme);
+    }
+
+    public function hequiv($name = null, $content = null)
+    {
+	return $this->view->hequiv($name, $content);
     }
 
     public function __get($name)

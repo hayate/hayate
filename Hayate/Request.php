@@ -67,17 +67,31 @@ class Hayate_Request
 	return $this->method == 'put';
     }
 
+    public function isAjax()
+    {
+	return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+		strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+    }
+
     /**
-     * TODO: change this method to accept other redirect codes
+     * Note: only http status 302 supported
+     * Note: if http schema is not present, the given location is
+     * assumend to be just a path and the schema + this hostname will
+     * be prepended
      */
     public function redirect($location, $code = 302)
     {
-        $this->dispatched(true);
+	if (false === stripos($location, 'http', 0))
+	{
+	    $path = ltrim($location, '/');
+	    $location = 'http://'.Hayate_URI::getInstance()->hostname();
+	    $location .= '/'.$path;
+	}
         header('Location: '.$location);
         if ($this->method() != 'head') {
             exit('<h1>'.$code.' - Found</h1><p><a href="'.$location.'">'.$location.'</a>');
         }
-        exit();
+	exit();
     }
 
     public function refresh()

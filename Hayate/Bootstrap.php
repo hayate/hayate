@@ -20,14 +20,14 @@ final class Hayate_Bootstrap
 {
     const REQUIRED_PHP_VERSION = '5.2.0';
     private static $instance = null;
-    private $hayatePath;
-    private $modelsPath;
+    private static $hayatePath;
+    private static $modelsPath;
 
     private function __construct()
     {
-        $this->hayatePath = dirname(dirname(__FILE__));
+        self::$hayatePath = dirname(dirname(__FILE__));
         $include_path = get_include_path() . PATH_SEPARATOR;
-        $include_path .= $this->hayatePath . PATH_SEPARATOR;
+        $include_path .= self::$hayatePath . PATH_SEPARATOR;
         set_include_path($include_path);
 
         if (version_compare(PHP_VERSION, self::REQUIRED_PHP_VERSION) < 0)
@@ -47,14 +47,14 @@ final class Hayate_Bootstrap
             }
         }
 
-        spl_autoload_register(array($this, 'autoload'));
+        spl_autoload_register('Hayate_Bootstrap::autoload');
         // register exception handler
         set_exception_handler(array(Hayate_Dispatcher::getInstance(), 'exceptionDispatch'));
 
         // load main config
         $config = Hayate_Config::load();
         // to autoload models class
-        $this->modelsPath = $config->get('models_dir', array());
+        self::$modelsPath = $config->get('models_dir', array());
 
         if (false !== $config->get('error_reporting', false))
         {
@@ -136,23 +136,23 @@ final class Hayate_Bootstrap
         //var_dump($mem);
     }
 
-    public function autoload($classname)
+    public static function autoload($classname)
     {
         if ('Hayate' == substr($classname, 0, 6))
         {
             $classpath = str_replace('_', DIRECTORY_SEPARATOR, $classname) .'.php';
-            $filepath = $this->hayatePath .'/'.$classpath;
+            $filepath = self::$hayatePath .'/'.$classpath;
         }
         else if (false !== ($pos = strpos($classname, '_Model')))
         {
             $classname = substr($classname, 0, $pos);
-            if (is_string($this->modelsPath))
+            if (is_string(self::$modelsPath))
             {
-                $filepath = realpath($this->modelsPath . DIRECTORY_SEPARATOR . $classname . '.php');
+                $filepath = realpath(self::$modelsPath . DIRECTORY_SEPARATOR . $classname . '.php');
             }
-            else if (is_array($this->modelsPath))
+            else if (is_array(self::$modelsPath))
             {
-                foreach ($this->modelsPath as $path)
+                foreach (self::$modelsPath as $path)
                 {
                     $fp = realpath($path . DIRECTORY_SEPARATOR . $classname . '.php');
                     if (false !== $fp)
@@ -178,7 +178,7 @@ final class Hayate_Bootstrap
             $classpath = str_replace('_', DIRECTORY_SEPARATOR, $classname) .'.php';
             $filepath = LIBPATH . $classpath;
         }
-        if (is_file($filepath))
+        if (isset($filepath) && is_file($filepath))
         {
             require_once $filepath;
         }
@@ -194,6 +194,7 @@ final class Hayate_Bootstrap
 
     public static function error_handler($errno, $errstr, $errfile = '', $errline = 0)
     {
+	require_once 'Hayate/Exception.php';
         $ex = new Hayate_Exception($errstr, $errno);
         $ex->setFile($errfile);
         $ex->setLine($errline);

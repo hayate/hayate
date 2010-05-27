@@ -88,6 +88,9 @@ class Hayate_URI
         $path = '';
         switch (true)
         {
+        case isset($_SERVER['REQUEST_URI']):
+            $path = $_SERVER['REQUEST_URI'];
+            break;
         case isset($_SERVER['PATH_INFO']):
             $path = $_SERVER['PATH_INFO'];
             break;
@@ -133,6 +136,15 @@ class Hayate_URI
             return 'https';
         }
         return 'http';
+    }
+
+    public function toUrl($path)
+    {
+	if (false !== stripos($path, 'http'))
+	{
+	    return $path;
+	}
+	return 'http://'.$this->hostname() .'/'.ltrim($path, '/');
     }
 
     public function __toString()
