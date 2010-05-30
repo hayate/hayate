@@ -27,7 +27,7 @@ abstract class Hayate_View_Abstract
 
     public function style($href = null, $media = 'screen', $type = 'text/css')
     {
-	if (null === $style)
+	if (null === $href)
 	{
 	    return implode("\n", $this->style);
 	}

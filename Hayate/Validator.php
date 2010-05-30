@@ -135,9 +135,15 @@ class Hayate_Validator extends ArrayObject
         return ($this->errors == array());
     }
 
-    public function addError($field, $error)
+    public function addError($field, $error = null)
     {
-        $this->errors[$field][] = $error;
+	if (null === $error)
+	{
+	    $this->errors['errors'][] = $field;
+	}
+	else {
+	    $this->errors[$field][] = $error;
+	}
     }
 
     public function preFilter($field, $callback, $params = array())

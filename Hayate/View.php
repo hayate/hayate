@@ -77,7 +77,7 @@ class Hayate_View
 
     public function style($href = null, $media = 'screen', $type = 'text/css')
     {
-	return $this->view->style($style);
+	return $this->view->style($href, $media, $type);
     }
 
     public function jscript($src = null, $type = 'text/javascript', $charset = 'UTF-8')

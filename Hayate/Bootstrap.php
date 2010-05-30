@@ -22,6 +22,7 @@ final class Hayate_Bootstrap
     private static $instance = null;
     private static $hayatePath;
     private static $modelsPath;
+    private static $libdirs = array();
 
     private function __construct()
     {
@@ -175,13 +176,40 @@ final class Hayate_Bootstrap
             }
         }
         else {
-            $classpath = str_replace('_', DIRECTORY_SEPARATOR, $classname) .'.php';
-            $filepath = LIBPATH . $classpath;
+	    $classpath = str_replace('_', DIRECTORY_SEPARATOR, $classname) .'.php';
+	    foreach (self::$libdirs as $path)
+	    {
+		$filepath = $path . $classpath;
+		if (is_file($filepath)) break;
+	    }
+	    if (! isset($filepath))
+	    {
+		$filepath = LIBPATH . $classpath;
+	    }
         }
         if (isset($filepath) && is_file($filepath))
         {
             require_once $filepath;
         }
+    }
+
+    public static function autoloadDir($dir)
+    {
+	if (is_array($dir))
+	{
+	    foreach ($dir as $d)
+	    {
+		self::autoloadDir($d);
+	    }
+	}
+	else if (is_dir($dir))
+	{
+	    $dir = rtrim($dir, '\//') . DIRECTORY_SEPARATOR;
+	    if (! in_array($dir, self::$libdirs))
+	    {
+		self::$libdirs[] = $dir;
+	    }
+	}
     }
 
     public static function modules()
