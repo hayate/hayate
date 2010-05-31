@@ -46,7 +46,6 @@ abstract class Hayate_ORM
         $this->setFields();
         $this->db = Hayate_Database::getInstance($this->dbconfig);
         $this->loaded = false;
-        $this->orderby = array($this->primary_key => 'ASC');
         if (null !== $id)
         {
             $this->load($id);

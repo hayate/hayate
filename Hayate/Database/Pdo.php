@@ -579,7 +579,7 @@ class Hayate_Database_Pdo extends PDO
         $sql .= (count($this->groupby) > 0) ? ' GROUP BY '.implode(',', $this->groupby) : '';
         $sql .= (count($this->orderby) > 0) ? ' ORDER BY '.implode(', ', $this->orderby) : '';
         $sql .= $this->compileLimit();
-        return $sql;
+	return $sql;
     }
 
     protected function compileLimit()
