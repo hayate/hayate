@@ -199,9 +199,9 @@ class Hayate_Image
 	return $this;
     }
 
-    public function save($filepath = null, $sanitize = true, $quality = 75)
+    public function save($filepath = null, $sanitize = true, $quality = 95)
     {
-	$quality = is_numeric($quality) ? $quality : 75;
+	$quality = is_numeric($quality) ? $quality : 95;
 	$sanitize = (bool)$sanitize;
 	if (null === $filepath)
 	{
@@ -225,14 +225,14 @@ class Hayate_Image
 	    imagegif($this->resized, $filepath);
 	    break;
 	case 'png':
-	    imagepng($this->resized, $filepath, $quality);
+	    imagepng($this->resized, $filepath, 9);
 	    break;
 	}
     }
 
-    public function render($quality = 75)
+    public function render($quality = 95)
     {
-	$quality = is_numeric($quality) ? $quality : 75;
+	$quality = is_numeric($quality) ? $quality : 95;
 	switch ($this->ext)
 	{
 	case 'jpg':
@@ -245,7 +245,7 @@ class Hayate_Image
 	    break;
 	case 'png':
 	    header('Content-type: image/png');
-	    imagepng($this->resized, null, $quality);
+	    imagepng($this->resized, null, 9);
 	    break;
 	}
     }
