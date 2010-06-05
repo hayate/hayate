@@ -188,7 +188,7 @@ abstract class Hayate_ORM
 
     public function __call($method, array $args)
     {
-        if (in_array($method, array('where','orwhere','distinct','orderby','groupby')) &&
+        if (in_array($method, array('where','orwhere','distinct','orderby','groupby','limit')) &&
             is_callable(array($this->db, $method)))
         {
             $call = new ReflectionMethod($this->db, $method);

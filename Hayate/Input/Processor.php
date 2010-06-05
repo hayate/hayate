@@ -70,4 +70,9 @@ abstract class Hayate_Input_Processor
     {
 	return isset($this->val->$name);
     }
+
+    public function asArray()
+    {
+	return $this->val->asArray();
+    }
 }
