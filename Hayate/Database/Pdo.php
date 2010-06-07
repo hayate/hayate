@@ -23,7 +23,6 @@ class Hayate_Database_Pdo extends PDO
 {
     protected $fetchMode;
     protected $lastQuery;
-    protected $countQuery;
 
     // query builder
     protected $select;
@@ -41,7 +40,6 @@ class Hayate_Database_Pdo extends PDO
     public function __construct(array $config)
     {
         $this->fetchMode = (isset($config['object']) && (true === $config['object'])) ? PDO::FETCH_OBJ : PDO::FETCH_ASSOC;
-        $this->countQuery = '';
         $this->reset();
 
         // sanity checks
@@ -219,8 +217,8 @@ class Hayate_Database_Pdo extends PDO
 
     public function limit($limit, $offset = null)
     {
-        $this->limit = is_int($limit) ? $limit : null;
-        $this->offset = is_int($offset) ? $offset : null;
+        $this->limit = is_numeric($limit) ? (int)$limit : null;
+        $this->offset = is_numeric($offset) ? (int)$offset : null;
         return $this;
     }
 
@@ -348,6 +346,33 @@ class Hayate_Database_Pdo extends PDO
             $sql .= ' WHERE '.implode(' ', $this->where);
         }
         return $this->exec($sql);
+    }
+
+    public function count($table = null, array $where = array())
+    {
+        if (null === $table)
+        {
+            if (! isset($this->from[0]))
+            {
+                throw new Hayate_Database_Exception(sprintf(_('Missing table name in: %s'), __METHOD__));
+            }
+            $table = $this->from[0];
+        }
+        $sql = 'SELECT COUNT(*) FROM '.$table;
+        if (count($where))
+        {
+            $this->where($where);
+            $sql .= ' WHERE '.implode(' ', $this->where);
+        }
+	try {
+	    $ret = $this->query($sql, self::FETCH_COLUMN, 0)
+		->fetch(self::FETCH_NUM);
+	    return $ret[0];
+	}
+	catch (Exception $ex) {
+	    Hayate_Log::error("{$ex}");
+	}
+	return 0;
     }
 
     public function where($field, $value = null)
@@ -539,11 +564,6 @@ class Hayate_Database_Pdo extends PDO
     public function lastQuery()
     {
         return $this->lastQuery;
-    }
-
-    public function countQuery()
-    {
-        return $this->countQuery;
     }
 
     public function lastInsertId($name = null)

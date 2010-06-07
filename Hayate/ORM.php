@@ -142,16 +142,21 @@ abstract class Hayate_ORM
     {
         if (null !== $id)
         {
-            $this->delete($this->table_name, array($this->primaryField($id) => $id));
+	    $this->db->delete($this->table_name, array($this->primaryField($id) => $id));
         }
         else {
             if (! $this->loaded())
             {
                 $this->db->get($this->table_name, $this);
             }
-            $this->delete($this->table_name, array($this->primary_key => $this->{$this->primary_key}));
+            $this->db->delete($this->table_name, array($this->primary_key => $this->{$this->primary_key}));
         }
         return $this;
+    }
+
+    public function count(array $where = array())
+    {
+	return $this->db->count($this->table_name, $where);
     }
 
     /**
