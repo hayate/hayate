@@ -81,6 +81,32 @@ class Hayate_Image
 	}
     }
 
+    public function width()
+    {
+	if (is_resource($this->resized))
+	{
+	    return imagesx($this->resized);
+	}
+	else if (is_resource($this->img))
+	{
+	    return imagesx($this->img);
+	}
+	return 0;
+    }
+
+    public function height()
+    {
+	if (is_resource($this->resized))
+	{
+	    return imagesy($this->resized);
+	}
+	else if (is_resource($this->img))
+	{
+	    return imagesy($this->img);
+	}
+	return 0;
+    }
+
     public function resize($width = 0, $height = 0, $keep_ratio = true)
     {
 	$width = ((null === $width) || !is_numeric($width) || ($width < 0)) ? 0 : $width;
@@ -196,6 +222,30 @@ class Hayate_Image
 	imagedestroy($this->resized);
 	$this->resized = $dst;
 
+	return $this;
+    }
+
+    public function crop($x, $y, $width, $height)
+    {
+	$w = $this->width();
+	$h = $this->height();
+
+	$width = ($width > $w) ? $w : $width;
+	$height = ($height > $h) ? $h : $height;
+
+	$dst = imagecreatetruecolor($width, $height);
+	imagealphablending($dst, false);
+	imagesavealpha($dst, true);
+	if (is_resource($this->resized))
+	{
+	    imagecopy($dst, $this->resized, 0, 0, $x, $y, $width, $height);
+	    imagedestroy($this->resized);
+	    $this->resized = $dst;
+	}
+	else {
+	    imagecopy($dst, $this->img, 0, 0, $x, $y, $width, $height);
+	    $this->resized = $dst;
+	}
 	return $this;
     }
 
