@@ -27,6 +27,7 @@ class Hayate_Cookie
     protected $httponly;
     protected $encrypt;
 
+    const SESSION = 0;
     const TWENTY_MINS = 1200;
     const FORTY_MINS = 2400;
     const ONE_HOUR = 3600;
@@ -81,14 +82,14 @@ class Hayate_Cookie
             $crypto = Hayate_Crypto::getInstance();
             $value = $crypto->encrypt($value);
         }
-        $expiration = time() + $expire;
+        $expiration = empty($expire) ? 0 : time() + $expire;
         setcookie($name, $value, $expiration, $path, $domain, $secure, $httponly);
     }
 
     /**
      * @param string $name The name of the cookie
      * @param mixed $default If $name is not set this value is returned
-     * @param book $xss_clean If boolean it will overwrite the configuration settings (prevent xss attacts)
+     * @param bool $xss_clean If boolean it will overwrite the configuration settings (prevent xss attacts)
      * @return mixed The value of the cookie
      */
     public function get($name, $default = null, $xss_clean = null)
