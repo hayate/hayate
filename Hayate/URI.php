@@ -90,6 +90,8 @@ class Hayate_URI
         {
         case isset($_SERVER['REQUEST_URI']):
             $path = $_SERVER['REQUEST_URI'];
+	    // make sure there is no query part
+	    $path = str_replace('?'.$_SERVER['QUERY_STRING'], '', $path);
             break;
         case isset($_SERVER['PATH_INFO']):
             $path = $_SERVER['PATH_INFO'];

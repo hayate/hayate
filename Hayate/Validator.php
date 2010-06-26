@@ -107,6 +107,9 @@ class Hayate_Validator extends ArrayObject
         }
     }
 
+    /**
+     * @return bool, True if there are no erros, false otherwise.
+     */
     public function validate()
     {
         // applying pre filters before validating
