@@ -101,7 +101,8 @@ abstract class Hayate_Controller
      */
     public function __call($method, array $args)
     {
-        Hayate_Log::info(__METHOD__);
-        throw new Hayate_Exception(sprintf(_('method "%s" not found.'), $method));
+        Hayate_Log::info(__METHOD__ . ' '. sprintf(_('method "%s" not found.'), $method));
+        throw new Hayate_Exception(sprintf(_('"%s" not found.'),
+					   Hayate_URI::getInstance()->current()), 400);
     }
 }

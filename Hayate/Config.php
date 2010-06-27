@@ -86,7 +86,10 @@ class Hayate_Config implements Countable, ArrayAccess
             if (($filename == $configname) && is_file($filepath))
             {
                 require_once $filepath;
-                $this->$name = new ArrayObject($config,ArrayObject::ARRAY_AS_PROPS);
+		if (isset($config) && is_array($config))
+		{
+		    $this->$name = new ArrayObject($config,ArrayObject::ARRAY_AS_PROPS);
+		}
                 return;
             }
         }
@@ -106,7 +109,10 @@ class Hayate_Config implements Countable, ArrayAccess
                     if (($filename == $configname) && is_file($filepath))
                     {
                         require_once $filepath;
-                        $this->$name = new ArrayObject($config,ArrayObject::ARRAY_AS_PROPS);
+			if (isset($config) && is_array($config))
+			{
+			    $this->$name = new ArrayObject($config,ArrayObject::ARRAY_AS_PROPS);
+			}
                         return;
                     }
                 }

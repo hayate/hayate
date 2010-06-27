@@ -32,9 +32,21 @@ class Hayate_Router
     protected function __construct()
     {
         $config = Hayate_Config::load('routes', false);
-        $this->routes = $config->routes;
+	if ($config && isset($config->routes))
+	{
+	    $this->routes = $config->routes->getArrayCopy();
+	}
+	if (count($this->routes))
+	{
+	    $keys = array_keys($this->routes);
+	    $values = array_values($this->routes);
+	    array_walk($keys, array($this, 'trimSlash'));
+	    array_walk($values, array($this, 'trimSlash'));
+	    $this->routes = array_combine($keys, $values);
+	}
         $base_path = array();
-        if (isset($config->core->base_path)) {
+        if (isset($config->core->base_path))
+	{
             $base_path = preg_split('|/|', $config->core->base_path, -1, PREG_SPLIT_NO_EMPTY);
         }
         $segments = Hayate_URI::getInstance()->segments();
@@ -68,7 +80,8 @@ class Hayate_Router
             {
                 if (preg_match('|^'.$key.'|u', $this->path) == 1)
                 {
-                    if (false !== strpos($val, '$')) {
+                    if (false !== strpos($val, '$'))
+		    {
                         $this->routed_path = preg_replace('|^'.$key.'|u', $val, $this->path);
                     }
                     else {
@@ -88,5 +101,10 @@ class Hayate_Router
     public function routedPath()
     {
         return $this->routed_path;
+    }
+
+    public function trimSlash(&$value, $key)
+    {
+	$value = trim($value, '\//');
     }
 }
