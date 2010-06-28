@@ -28,6 +28,12 @@ class Hayate_Session
         switch ($driver)
         {
         case 'database':
+	    // can we get a db connection ?
+	    if (null === Hayate_Database::getInstance())
+	    {
+		throw new Hayate_Exception(sprintf(_('%s cannot use "database" driver as it is unable'.
+						     ' to retrieve a valid database connection.'), __CLASS__));
+	    }
             $ses = Hayate_Session_Database::getInstance();
             session_set_save_handler(array($ses, 'open'), array($ses, 'close'), array($ses, 'read'),
                                      array($ses, 'write'), array($ses, 'destroy'), array($ses, 'gc'));

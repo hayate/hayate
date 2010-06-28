@@ -47,8 +47,11 @@ class Hayate_Database_Pdo extends PDO
         {
             throw new Hayate_Database_Exception(_('Missing or invalid dsn field in database configuration file.'));
         }
-
-        $params = array();
+	$params = array();
+	if (isset($config['timeout']) && is_numeric($config['timeout']))
+	{
+	    $params[PDO::ATTR_TIMEOUT] = (int)$config['timeout'];
+	}
         if (false !== stripos($config['dsn'], 'mysql'))
         {
             $params[PDO::ATTR_PERSISTENT] = (true === $config['persistent']) ? true : false;
