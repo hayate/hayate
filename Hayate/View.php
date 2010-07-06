@@ -25,11 +25,15 @@ class Hayate_View
     protected $template;
     protected $vars;
 
-    public function __construct($template)
+    public function __construct($template, $render = false)
     {
         $this->view = self::factory();
         $this->template = $template;
         $this->vars = array();
+	if (true === $render)
+	{
+	    Hayate_Event::add('hayate.render', array($this, '_render'));
+	}
     }
 
     /**

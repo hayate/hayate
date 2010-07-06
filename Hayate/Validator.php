@@ -19,7 +19,8 @@
 class Hayate_Validator extends ArrayObject
 {
     protected $valid_rules = array('(required)','(email)','(url)','(numeric)','(boolean)',
-                                   '(length)\[(\d+)\]','(range)\[([+-]?\d+)-([+-]?\d+)\]');
+                                   '(length)\[(\d+)\]','(range)\[([+-]?\d+)-([+-]?\d+)\]',
+				   '(size)\[(\d+)-(\d+)\]');
     protected $vals;
     protected $errors;
     protected $prefilters;
@@ -86,7 +87,14 @@ class Hayate_Validator extends ArrayObject
                                                       'error' => isset($msg[$i]) ? $msg[$i] : $error);
                         break;
                     case 'range':
-                        $error = sprintf(_('%s must be between %d and %d characters long.'),
+                        $error = sprintf(_('%s must be between %d and %d inclusive.'),
+                                         $this->fieldName($field), $match[2], $match[3]);
+                        $this->vals[$field][] = array('rule' => $match[1],
+                                                      'param' => array($match[2],$match[3]),
+                                                      'error' => isset($msg[$i]) ? $msg[$i] : $error);
+                        break;
+                    case 'size':
+                        $error = sprintf(_('%s must be between %d and %d (inclusive) characters long.'),
                                          $this->fieldName($field), $match[2], $match[3]);
                         $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => array($match[2],$match[3]),
@@ -301,6 +309,10 @@ class Hayate_Validator extends ArrayObject
         return true;
     }
 
+    /**
+     * @param string $field The field name
+     * @param array $params Min and Max values respective at position 0 and 1 of the array
+     */
     protected function range($field, array $params)
     {
         if (array_key_exists($field, $this))
@@ -308,6 +320,22 @@ class Hayate_Validator extends ArrayObject
             $min = $params[0];
             $max = $params[1];
             return (($this[$field] >= $min) && ($this[$field] <= $max));
+        }
+        return true;
+    }
+
+    /**
+     * @param string $field The field name
+     * @param array $params Min and Max values respective at position 0 and 1 of the array
+     */
+    protected function size($field, array $params)
+    {
+        if (array_key_exists($field, $this))
+        {
+            $min = $params[0];
+            $max = $params[1];
+            return ((mb_strlen($this[$field], 'UTF-8') >= $min) &&
+		    (mb_strlen($this[$field], 'UTF-8') <= $max));
         }
         return true;
     }
