@@ -61,6 +61,19 @@ abstract class Hayate_Input_Processor
 	$this->props[$name] = $prop;
     }
 
+    public function hasProperty($name)
+    {
+	return array_key_exists($name, $this->props);
+    }
+
+    public function removeProperty($name)
+    {
+	if (array_key_exists($name, $this->props))
+	{
+	    unset($this->props[$name]);
+	}
+    }
+
     public function __get($name)
     {
 	return $this->val->$name;
