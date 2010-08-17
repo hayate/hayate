@@ -187,7 +187,7 @@ class Hayate_Database_Pdo extends PDO
             if (mb_strlen($join) > 0) {
                 $join .= ' '.trim($opt).' ';
             }
-            if (! $this->has_operator($c1))
+            if (! $this->hasOperator($c1))
             {
                 $c1 .= '=';
             }
@@ -367,6 +367,10 @@ class Hayate_Database_Pdo extends PDO
             $this->where($where);
             $sql .= ' WHERE '.implode(' ', $this->where);
         }
+	else if (count($this->where))
+	{
+	    $sql .= ' WHERE '.implode(' ', $this->where);
+	}
 	try {
 	    $ret = $this->query($sql, self::FETCH_COLUMN, 0)
 		->fetch(self::FETCH_NUM);
