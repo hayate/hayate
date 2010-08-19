@@ -98,7 +98,6 @@ class Hayate_Dispatcher
     {
 	try{
             if (Hayate_Event::run('hayate.exception', array($this, $ex))) return;
-            Hayate_Log::error("{$ex}");
 
             // try to dispatch to the current module error.php controller
             $module = $this->module();

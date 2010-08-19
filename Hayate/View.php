@@ -46,6 +46,7 @@ class Hayate_View
 
     public function _render()
     {
+	$this->view->assign($this->vars);
         $this->view->render($this->template, $this->vars);
     }
 
@@ -54,6 +55,7 @@ class Hayate_View
      */
     public function fetch()
     {
+	$this->view->assign($this->vars);
         return $this->view->fetch($this->template, $this->vars);
     }
 

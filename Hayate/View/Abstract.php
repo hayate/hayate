@@ -24,6 +24,12 @@ abstract class Hayate_View_Abstract
     protected $style = array();
     protected $jscript = array();
     protected $meta = array();
+    protected $vars = array();
+
+    public function assign(array $vars)
+    {
+	$this->vars = $vars;
+    }
 
     public function style($href = null, $media = 'screen', $type = 'text/css')
     {

@@ -46,10 +46,12 @@ class Hayate_View_Smarty extends Hayate_View_Abstract implements Hayate_View_Int
                 $this->smarty->$prop = $val;
             }
         }
+	/*
         if (version_compare($this->smarty->_version, '3.0') < 0)
         {
             $this->is_smarty_2 = true;
         }
+	*/
     }
 
     public static function getInstance()
@@ -63,13 +65,26 @@ class Hayate_View_Smarty extends Hayate_View_Abstract implements Hayate_View_Int
 
     public function render($template, array $args = array())
     {
+	if (empty($args))
+	{
+	    $this->smarty->assign($this->vars);
+	}
+	else {
+	    $this->smarty->assign($args);
+	}
         $this->smarty->assign($args);
         $this->smarty->display($template.'.tpl');
     }
 
     public function fetch($template, array $args = array())
     {
-        $this->smarty->assign($args);
+	if (empty($args))
+	{
+	    $this->smarty->assign($this->vars);
+	}
+	else {
+	    $this->smarty->assign($args);
+	}
         return $this->smarty->fetch($template.'.tpl');
     }
 
