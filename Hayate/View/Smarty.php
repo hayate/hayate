@@ -65,26 +65,15 @@ class Hayate_View_Smarty extends Hayate_View_Abstract implements Hayate_View_Int
 
     public function render($template, array $args = array())
     {
-	if (empty($args))
-	{
-	    $this->smarty->assign($this->vars);
-	}
-	else {
-	    $this->smarty->assign($args);
-	}
-        $this->smarty->assign($args);
+	$params = array_merge($args, $this->vars);
+	$this->smarty->assign($params);
         $this->smarty->display($template.'.tpl');
     }
 
     public function fetch($template, array $args = array())
     {
-	if (empty($args))
-	{
-	    $this->smarty->assign($this->vars);
-	}
-	else {
-	    $this->smarty->assign($args);
-	}
+	$params = array_merge($args, $this->vars);
+	$this->smarty->assign($params);
         return $this->smarty->fetch($template.'.tpl');
     }
 

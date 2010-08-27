@@ -49,16 +49,11 @@ class Hayate_View_Native extends Hayate_View_Abstract implements Hayate_View_Int
 
     public function render($template, array $args = array())
     {
-	if (empty($args))
-	{
-	    extract($this->vars, EXTR_SKIP);
-	}
-	else {
-	    extract($args, EXTR_SKIP);
-	}
+	$params = array_merge($args, $this->vars);
+	extract($params, EXTR_SKIP);
         ob_start();
         try {
-            require_once($template.'.php');
+            require($template.'.php');
         }
         catch (Exception $ex) {
             ob_end_clean();
@@ -69,16 +64,11 @@ class Hayate_View_Native extends Hayate_View_Abstract implements Hayate_View_Int
 
     public function fetch($template, array $args = array())
     {
-	if (empty($args))
-	{
-	    extract($this->vars, EXTR_SKIP);
-	}
-	else {
-	    extract($args, EXTR_SKIP);
-	}
+	$params = array_merge($args, $this->vars);
+	extract($params, EXTR_SKIP);
         ob_start();
         try {
-            require_once($template.'.php');
+            require($template.'.php');
         }
         catch (Exception $ex) {
             ob_end_clean();

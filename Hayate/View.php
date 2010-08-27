@@ -81,6 +81,11 @@ class Hayate_View
         }
     }
 
+    public function assign(array $vars)
+    {
+	$this->vars = $vars;
+    }
+
     public function style($href = null, $media = 'screen', $type = 'text/css')
     {
 	return $this->view->style($href, $media, $type);

@@ -109,7 +109,7 @@ class Hayate_Validator extends ArrayObject
 
     public function addCallback($field, $callback, $param = null)
     {
-        if (isset($this[$field]))
+        if ($this->offsetExists($field))
         {
             $this->vals[$field][] = array('callback' => array($callback, $param));
         }
@@ -208,16 +208,6 @@ class Hayate_Validator extends ArrayObject
     public function asArray()
     {
         return $this->getArrayCopy();
-    }
-
-    public function offsetExists($name)
-    {
-	if (parent::offsetExists($name))
-	{
-	    $value = $this->offsetGet($name);
-	    return (false === empty($value));
-	}
-	return false;
     }
 
     public function get($name, $default = null)

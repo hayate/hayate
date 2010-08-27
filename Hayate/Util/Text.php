@@ -20,6 +20,8 @@ class Hayate_Util_Text
 {
     public static function limitChars($text, $size = 80, $end = '&#8230;', $fullword = false)
     {
+	$end = is_null($end) ? '&#8230;' : $end;
+
 	if ($size > mb_strlen($text, 'UTF-8'))
 	{
 	    return $text;
