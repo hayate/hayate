@@ -182,7 +182,7 @@ final class Hayate_Bootstrap
 		$filepath = $path . $classpath;
 		if (is_file($filepath)) break;
 	    }
-	    if (! is_file($filepath))
+	    if (!isset($filepath) || !is_file($filepath))
 	    {
 		$filepath = LIBPATH . $classpath;
 	    }

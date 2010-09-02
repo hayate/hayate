@@ -94,7 +94,7 @@ class Hayate_Cookie
      */
     public function get($name, $default = null, $xss_clean = null)
     {
-        if (! isset($_COOKIE[$name]))
+	if (! $this->exists($name))
         {
             return $default;
         }
@@ -125,5 +125,14 @@ class Hayate_Cookie
         $domain = is_null($domain) ? $this->domain : $domain;
 
         setcookie($name, '', time() - 3600, $path, $domain);
+    }
+
+    /**
+     * @param string $name The name of the cookie
+     * @return bool True if the cookie exists false otherwise.
+     */
+    public function exists($name)
+    {
+	return array_key_exists($name, $_COOKIE);
     }
 }
