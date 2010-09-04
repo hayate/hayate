@@ -39,21 +39,33 @@ class Hayate_Upload
 	$this->status = UPLOAD_ERR_OK;
     }
 
+    /**
+     * @return int A file upload error code
+     */
     public function status()
     {
 	return $this->status;
     }
 
+    /**
+     * @return string An error message (if any)
+     */
     public function error()
     {
 	return $this->error;
     }
 
+    /**
+     * @return bool True if error code is not UPLOAD_ERR_NO_FILE
+     */
     public function uploaded()
     {
 	return ($this->item['error'] != UPLOAD_ERR_NO_FILE);
     }
 
+    /**
+     * @return bool|string Returns false on failure or the filepath of success
+     */
     public function save($path, $sanitize = true, $prefix = null)
     {
 	$filename = $this->item['name'];
@@ -90,6 +102,11 @@ class Hayate_Upload
 	return false;
     }
 
+    /**
+     * @param array $exts An array of valid file extensions i.e. array('jpg', 'jpeg', 'png', 'gif')
+     * @param int $size Max allowed file size
+     * @return bool True if there are no errors false otherwise, error string can be retrieve calling $this->error()
+     */
     public function validate(array $exts = array(), $size = null)
     {
 	if ($exts !== array())

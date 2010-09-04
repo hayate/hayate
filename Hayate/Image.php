@@ -28,7 +28,7 @@ class Hayate_Image
 
     public function __construct($filepath)
     {
-	if (! function_exists('getimagesize'))
+	if (! function_exists('gd_info'))
 	{
 	    throw new Hayate_Exception(_('GD extension is missing.'));
 	}
@@ -249,6 +249,9 @@ class Hayate_Image
 	return $this;
     }
 
+    /**
+     * @return void
+     */
     public function save($filepath = null, $sanitize = true, $quality = 95)
     {
 	$quality = is_numeric($quality) ? $quality : 95;
