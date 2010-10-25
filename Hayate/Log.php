@@ -32,7 +32,13 @@ class Hayate_Log
 
     public static function error($msg, $print_r = false)
     {
-        self::write(self::HAYATE_LOG_ERROR, $msg, $print_r);
+	if ($msg instanceof Exception)
+	{
+	    self::ex($msg);
+	}
+	else {
+	    self::write(self::HAYATE_LOG_ERROR, $msg, $print_r);
+	}
     }
 
     public static function info($msg, $print_r = false)
@@ -45,8 +51,30 @@ class Hayate_Log
         self::write(self::HAYATE_LOG_DEBUG, $msg, $print_r);
     }
 
+    public static function ex($ex, $use_print_r = false)
+    {
+	if (! ($ex instanceof Exception))
+	{
+	    self::write(self::HAYATE_LOG_ERROR, $msg, $use_print_r);
+	}
+	else {
+	    if ($use_print_r)
+	    {
+		self::write(self::HAYATE_LOG_ERROR, $ex, true);
+	    }
+	    else {
+		$msg = $ex->getMessage()."\nFile: ".$ex->getFile() ."\nLine: ".$ex->getLine()."\n".$ex->getTraceAsString();
+		self::write(self::HAYATE_LOG_ERROR, $msg, false);
+	    }
+	}
+    }
+
     protected static function write($type, $msg, $print_r)
     {
+	if (! $print_r && !is_string($msg))
+	{
+	    return self::write($type, $msg, true);
+	}
         $config = Hayate_Config::load();
         $error_level = $config->get('error_level', self::HAYATE_LOG_OFF);
         if ($type <= $error_level)

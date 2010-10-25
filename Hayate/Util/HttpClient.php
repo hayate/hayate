@@ -425,7 +425,7 @@ class Hayate_Util_HttpClient
 	{
             $path .= '?'.$bits['query'];
         }
-        $client = new HttpClient($host, $port);
+        $client = new self($host, $port);
         if (!$client->get($path))
 	{
             return false;
@@ -441,7 +441,7 @@ class Hayate_Util_HttpClient
         $host = $bits['host'];
         $port = isset($bits['port']) ? $bits['port'] : 80;
         $path = isset($bits['path']) ? $bits['path'] : '/';
-        $client = new HttpClient($host, $port);
+        $client = new self($host, $port);
         if (!$client->post($path, $data))
 	{
             return false;

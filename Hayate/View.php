@@ -30,10 +30,10 @@ class Hayate_View
         $this->view = self::factory();
         $this->template = $template;
         $this->vars = array();
-	if (true === $render)
-	{
-	    Hayate_Event::add('hayate.render', array($this, '_render'));
-	}
+        if (true === $render)
+        {
+            Hayate_Event::add('hayate.render', array($this, '_render'));
+        }
     }
 
     /**
@@ -46,7 +46,7 @@ class Hayate_View
 
     public function _render()
     {
-	$this->view->assign($this->vars);
+        $this->view->assign($this->vars);
         $this->view->render($this->template, $this->vars);
     }
 
@@ -55,7 +55,7 @@ class Hayate_View
      */
     public function fetch()
     {
-	$this->view->assign($this->vars);
+        $this->view->assign($this->vars);
         return $this->view->fetch($this->template, $this->vars);
     }
 
@@ -83,27 +83,27 @@ class Hayate_View
 
     public function assign(array $vars)
     {
-	$this->vars = $vars;
+        $this->vars = $vars;
     }
 
     public function style($href = null, $media = 'screen', $type = 'text/css')
     {
-	return $this->view->style($href, $media, $type);
+        return $this->view->style($href, $media, $type);
     }
 
     public function jscript($src = null, $type = 'text/javascript', $charset = 'UTF-8')
     {
-	return $this->view->jscript($src, $type, $charset);
+        return $this->view->jscript($src, $type, $charset);
     }
 
     public function meta($name = null, $content = null, $scheme = null)
     {
-	return $this->view->meta($name, $content, $scheme);
+        return $this->view->meta($name, $content, $scheme);
     }
 
     public function hequiv($name = null, $content = null)
     {
-	return $this->view->hequiv($name, $content);
+        return $this->view->hequiv($name, $content);
     }
 
     public function __get($name)
@@ -133,7 +133,8 @@ class Hayate_View
         }
         catch (Exception $ex) {
             restore_error_handler();
-            trigger_error($ex->getMessage(), E_USER_ERROR);
+            $msg = $ex->getMessage() . ' at line: '.$ex->getLine();
+            trigger_error($msg, E_USER_ERROR);
             set_error_handler(array(Hayate_Bootstrap::getInstance(), 'error_handler'));
             return '';
         }
