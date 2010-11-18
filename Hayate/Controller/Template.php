@@ -32,9 +32,9 @@ abstract class Hayate_Controller_Template extends Hayate_Controller
     {
         parent::__construct();
 
-        $this->template = new Hayate_View($this->template);
         if (true === $this->auto_render)
         {
+            $this->template = new Hayate_View($this->template);
             Hayate_Event::add('hayate.render', array($this, '_render'));
         }
     }

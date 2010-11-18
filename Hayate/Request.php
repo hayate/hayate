@@ -64,7 +64,12 @@ class Hayate_Request
 
     public function isPut()
     {
-	return $this->method == 'put';
+        return $this->method == 'put';
+    }
+
+    public function isHead()
+    {
+        return $this->method == 'head';
     }
 
     public function isAjax()

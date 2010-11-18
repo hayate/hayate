@@ -23,8 +23,8 @@ abstract class Hayate_Input_Processor
 
     public function __construct(array $input = array())
     {
-	$this->val = new Hayate_Validator($input);
-	$this->props = array();
+        $this->val = new Hayate_Validator($input);
+        $this->props = array();
     }
 
     abstract function process($action = null);
@@ -39,53 +39,58 @@ abstract class Hayate_Input_Processor
      */
     public function errors($field = null, $first = false)
     {
-	return $this->val->errors($field, $first);
+        return $this->val->errors($field, $first);
     }
 
     public function addError($error)
     {
-	$this->val->addError($error);
+        $this->val->addError($error);
+    }
+
+    public function setError($error)
+    {
+        $this->val->setError($error);
     }
 
     public function getProperty($name, $default = null)
     {
-	if (array_key_exists($name, $this->props))
-	{
-	    return $this->props[$name];
-	}
-	return $default;
+        if (array_key_exists($name, $this->props))
+        {
+            return $this->props[$name];
+        }
+        return $default;
     }
 
     public function setProperty($name, &$prop)
     {
-	$this->props[$name] = $prop;
+        $this->props[$name] = $prop;
     }
 
     public function hasProperty($name)
     {
-	return array_key_exists($name, $this->props);
+        return array_key_exists($name, $this->props);
     }
 
     public function removeProperty($name)
     {
-	if (array_key_exists($name, $this->props))
-	{
-	    unset($this->props[$name]);
-	}
+        if (array_key_exists($name, $this->props))
+        {
+            unset($this->props[$name]);
+        }
     }
 
     public function __get($name)
     {
-	return $this->val->$name;
+        return $this->val->$name;
     }
 
     public function __isset($name)
     {
-	return isset($this->val->$name);
+        return isset($this->val->$name);
     }
 
     public function asArray()
     {
-	return $this->val->asArray();
+        return $this->val->asArray();
     }
 }

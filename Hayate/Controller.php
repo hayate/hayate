@@ -83,12 +83,17 @@ abstract class Hayate_Controller
 
     public function isPut()
     {
-	return $this->request->isPut();
+        return $this->request->isPut();
+    }
+
+    public function isHead()
+    {
+        return $this->request->isHead();
     }
 
     public function isAjax()
     {
-	return $this->request->isAjax();
+        return $this->request->isAjax();
     }
 
     public function refresh()

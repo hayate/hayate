@@ -57,6 +57,10 @@ final class Hayate_Bootstrap
         // to autoload models class
         self::$modelsPath = $config->get('models_dir', array());
 
+        if (false !== $config->get('display_errors', false))
+        {
+            ini_set('display_errors', 'On');
+        }
         if (false !== $config->get('error_reporting', false))
         {
             error_reporting($config->core->error_reporting);
