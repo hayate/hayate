@@ -36,13 +36,14 @@ abstract class Hayate_ORM
 
     public function __construct($id = null)
     {
-        if (! isset($this->table_name)) {
+        if (! isset($this->table_name)) 
+        {
             $this->table_name = strtolower(str_ireplace('_model', '', get_class($this)));
         }
-	if (! isset($this->class_name))
-	{
-	    $this->class_name = strtolower(str_ireplace('_model', '', get_class($this)));
-	}
+        if (!isset($this->class_name))
+        {
+            $this->class_name = strtolower(str_ireplace('_model', '', get_class($this)));
+        }
         $this->setFields();
         $this->db = Hayate_Database::getInstance($this->dbconfig);
         $this->loaded = false;

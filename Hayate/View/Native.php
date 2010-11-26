@@ -43,14 +43,13 @@ class Hayate_View_Native extends Hayate_View_Abstract implements Hayate_View_Int
         if (null == self::$instance) {
             self::$instance = new self();
         }
-
         return self::$instance;
     }
 
     public function render($template, array $args = array())
     {
-	$params = array_merge($args, $this->vars);
-	extract($params, EXTR_SKIP);
+        $params = array_merge($args, $this->vars);
+	    extract($params, EXTR_SKIP);
         ob_start();
         try {
             require($template.'.php');

@@ -24,6 +24,7 @@ class Hayate_Validator extends ArrayObject
     protected $vals;
     protected $errors;
     protected $prefilters;
+    protected $multiErrors;
 
     public function __construct(array $input = array())
     {
@@ -31,6 +32,7 @@ class Hayate_Validator extends ArrayObject
         $this->vals = array();
         $this->errors = array();
         $this->prefilters = array();
+        $this->multiErrors = false;
     }
 
     /**
@@ -146,6 +148,15 @@ class Hayate_Validator extends ArrayObject
         return ($this->errors == array());
     }
 
+    /**
+     * @param bool $enable If true each field can have multiple errors, default to false
+     * @return void
+     */
+    public function multipleErrors($enable)
+    {
+        $this->multiErrors = (bool)$enable;
+    }
+
     public function addError($field, $error = null)
     {
         if (null === $error)
@@ -153,23 +164,14 @@ class Hayate_Validator extends ArrayObject
             $error = $field;
             $field = 'errors';
         }
-        if (isset($this->errors[$field]) && is_string($this->errors[$field]))
+        if ($this->multiErrors)
         {
-            $tmp = $this->errors[$field];
-            unset($this->errors[$field]);
-            $this->errors[$field][] = $tmp;
+            $this->errors[$field][] = $error;
         }
-        $this->errors[$field][] = $error;;
-    }
-
-    public function setError($field, $error = null)
-    {
-        if (null === $error)
+        else if (! isset($this->errors[$field]))
         {
-            $error = $field;
-            $field = 'errors';
+            $this->errors[$field] = $error;
         }
-        $this->errors[$field] = $error;
     }
 
     public function preFilter($field, $callback, $params = array())

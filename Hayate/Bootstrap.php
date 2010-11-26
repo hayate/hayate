@@ -39,6 +39,8 @@ final class Hayate_Bootstrap
         }
         // register error handler
         set_error_handler('Hayate_Bootstrap::error_handler');
+        // register shutdown function, capture fatal errors
+        register_shutdown_function('Hayate_Bootstrap::shutdown_function');
 
         // Hayate knows how to autoload its own classes
         if (false === spl_autoload_functions())
@@ -224,9 +226,23 @@ final class Hayate_Bootstrap
         return $modules;
     }
 
+    public static function shutdown_function()
+    {
+        $error = error_get_last();
+        if (is_array($error))
+        {
+            require_once 'Hayate/Exception.php';
+            $ex = new Hayate_Exception($error['message'], $error['type']);
+            $ex->setFile($error['file']);
+            $ex->setLine($error['line']);
+            Hayate_Log::ex($ex);
+            throw $ex;
+        }
+    }
+
     public static function error_handler($errno, $errstr, $errfile = '', $errline = 0)
     {
-	require_once 'Hayate/Exception.php';
+        require_once 'Hayate/Exception.php';
         $ex = new Hayate_Exception($errstr, $errno);
         $ex->setFile($errfile);
         $ex->setLine($errline);

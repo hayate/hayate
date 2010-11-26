@@ -43,20 +43,23 @@ class Hayate_Session
             default:
                 throw new Hayate_Exception(sprintf(_('Session driver: "%s" not supported.'), $driver));
         }
+        // @see http://php.net/manual/en/function.session-write-close.php
         Hayate_Event::add('hayate.shutdown', 'session_write_close');
+
         ini_set('session.use_only_cookies', true);
         ini_set('session.use_trans_sid', 0);
         session_name($this->config->get('session.name', 'HayateSession'));
 
         // session will not work with a domain without top level
         $domain = $this->config->get('session.domain', $_SERVER['SERVER_NAME']);
-        if (preg_match('/\.?.+\..+/', $domain) != 1) $domain = '';
+        if (preg_match('/\.?.+\.[a-z]{2,4}/i', $domain) != 1) $domain = '';
 
-        session_set_cookie_params($this->config->get('session.lifetime', 0),
-        $this->config->get('session.path', '/'),
-        $domain,
-        $this->config->get('session.secure', false),
-        $this->config->get('session.httponly', false));
+        session_set_cookie_params((int)$this->config->get('session.lifetime', 0),
+            $this->config->get('session.path', '/'),
+            $domain,
+            $this->config->get('session.secure', false),
+            $this->config->get('session.httponly', false));
+
         session_start();
         Hayate_Log::info(sprintf(_('%s initialized.'), __CLASS__));
     }
