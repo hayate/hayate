@@ -29,6 +29,7 @@ final class Hayate_Bootstrap
         self::$hayatePath = dirname(dirname(__FILE__));
         $include_path = get_include_path() . PATH_SEPARATOR;
         $include_path .= self::$hayatePath . PATH_SEPARATOR;
+
         set_include_path($include_path);
 
         if (version_compare(PHP_VERSION, self::REQUIRED_PHP_VERSION) < 0)
@@ -182,16 +183,17 @@ final class Hayate_Bootstrap
             }
         }
         else {
-	    $classpath = str_replace('_', DIRECTORY_SEPARATOR, $classname) .'.php';
-	    foreach (self::$libdirs as $path)
-	    {
-		$filepath = $path . $classpath;
-		if (is_file($filepath)) break;
-	    }
-	    if (!isset($filepath) || !is_file($filepath))
-	    {
-		$filepath = LIBPATH . $classpath;
-	    }
+            $classpath = str_replace('_', DIRECTORY_SEPARATOR, $classname) . '.php';
+
+            foreach (self::$libdirs as $path)
+            {
+                $filepath = $path . $classpath;
+                if (is_file($filepath)) break;
+            }
+            if (!isset($filepath) || !is_file($filepath))
+            {
+                $filepath = LIBPATH . $classpath;
+            }
         }
         if (isset($filepath) && is_file($filepath))
         {
@@ -201,21 +203,21 @@ final class Hayate_Bootstrap
 
     public static function autoloadDir($dir)
     {
-	if (is_array($dir))
-	{
-	    foreach ($dir as $d)
+	    if (is_array($dir))
 	    {
-		self::autoloadDir($d);
+	        foreach ($dir as $d)
+	        {
+		        self::autoloadDir($d);
+	        }
 	    }
-	}
-	else if (is_dir($dir))
-	{
-	    $dir = rtrim($dir, '\//') . DIRECTORY_SEPARATOR;
-	    if (! in_array($dir, self::$libdirs))
+	    else if (is_dir($dir))
 	    {
-		self::$libdirs[] = $dir;
+	        $dir = rtrim($dir, '\//') . DIRECTORY_SEPARATOR;
+	        if (! in_array($dir, self::$libdirs))
+	        {
+		        self::$libdirs[] = $dir;
+	        }
 	    }
-	}
     }
 
     public static function modules()

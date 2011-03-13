@@ -82,7 +82,21 @@ class Hayate_Cookie
             $crypto = Hayate_Crypto::getInstance();
             $value = $crypto->encrypt($value);
         }
-        $expiration = empty($expire) ? 0 : time() + $expire;
+        $expiration = empty($expire) ? 0 : gmdate('U') + $expire;
+        if (! empty($domain))
+        {
+            // make sure there are not staring dot
+            $domain = ltrim($domain, '.');
+            // make sure it has an acceptable top level domain name
+            if (1 == preg_match('/.+\.[a-z]{2,4}$/i', $domain))
+            {
+                // seems a valid hostname, now add the starting dot
+                $domain = '.'.$domain;
+            }
+            else {
+                $domain = '';
+            }
+        }
         setcookie($name, $value, $expiration, $path, $domain, $secure, $httponly);
     }
 
@@ -123,8 +137,21 @@ class Hayate_Cookie
     {
         $path = is_null($path) ? $this->path : $path;
         $domain = is_null($domain) ? $this->domain : $domain;
-
-        setcookie($name, '', time() - 3600, $path, $domain);
+        if (! empty($domain))
+        {
+            // make sure there are not staring dot
+            $domain = ltrim($domain, '.');
+            // make sure it has an acceptable top level domain name
+            if (1 == preg_match('/.+\.[a-z]{2,4}$/i', $domain))
+            {
+                // seems a valid hostname, now add the starting dot
+                $domain = '.'.$domain;
+            }
+            else {
+                $domain = '';
+            }
+        }
+        setcookie($name, '', gmdate('U') - 3600, $path, $domain);
     }
 
     /**

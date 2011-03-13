@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 /**
  * @package Hayate_Database
  */
@@ -47,12 +48,12 @@ class Hayate_Database_Pdo extends PDO
         {
             throw new Hayate_Database_Exception(_('Missing or invalid dsn field in database configuration file.'));
         }
-	$params = array();
-	if (isset($config['timeout']) && is_numeric($config['timeout']))
-	{
-	    $params[PDO::ATTR_TIMEOUT] = (int)$config['timeout'];
-	}
-        if (false !== stripos($config['dsn'], 'mysql'))
+        $params = array();
+        if(isset($config['timeout']) && is_numeric($config['timeout']))
+        {
+            $params[PDO::ATTR_TIMEOUT] = (int) $config['timeout'];
+        }
+        if(false !== stripos($config['dsn'], 'mysql'))
         {
             $params[PDO::ATTR_PERSISTENT] = (true === $config['persistent']) ? true : false;
             $params[PDO::MYSQL_ATTR_USE_BUFFERED_QUERY] = (true === $config['buffered']) ? true : false;
@@ -553,18 +554,20 @@ class Hayate_Database_Pdo extends PDO
 
     public function quote($value, $parameter_type = PDO::PARAM_STR)
     {
-        switch (true)
+        switch(true)
         {
-        case is_bool($value):
-            return parent::quote($value, PDO::PARAM_BOOL);
-        case is_null($value):
-            return parent::quote($value, PDO::PARAM_NULL);
-        case is_int($value):
-            return parent::quote($value, PDO::PARAM_INT);
-        case is_string($value):
-            return parent::quote($value, PDO::PARAM_STR);
-        default:
-            return parent::quote($value, $parameter_type);
+            case is_bool($value):
+                return parent::quote($value, PDO::PARAM_BOOL);
+            case is_null($value):
+                return parent::quote($value, PDO::PARAM_NULL);
+            case is_int($value):
+                return parent::quote(intval($value), PDO::PARAM_INT);
+            case is_numeric($value):
+                return parent::quote(intval($value), PDO::PARAM_INT);
+            case is_string($value):
+                return parent::quote($value, PDO::PARAM_STR);
+            default:
+                return parent::quote($value, $parameter_type);
         }
     }
 

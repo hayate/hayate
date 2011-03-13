@@ -25,18 +25,18 @@ class Hayate_Session
     {
         $this->config = Hayate_Config::load('session');
         $driver = isset($this->config->session->driver) ? $this->config->session->driver : 'native';
-        switch ($driver)
+        switch($driver)
         {
             case 'database':
                 // can we get a db connection ?
-                if (null === Hayate_Database::getInstance())
+                if(null === Hayate_Database::getInstance())
                 {
-                    throw new Hayate_Exception(sprintf(_('%s cannot use "database" driver as it is unable'.
-						     ' to retrieve a valid database connection.'), __CLASS__));
+                    throw new Hayate_Exception(sprintf(_('%s cannot use "database" driver as it is unable' .
+                                            ' to retrieve a valid database connection.'), __CLASS__));
                 }
                 $ses = Hayate_Session_Database::getInstance();
                 session_set_save_handler(array($ses, 'open'), array($ses, 'close'), array($ses, 'read'),
-                array($ses, 'write'), array($ses, 'destroy'), array($ses, 'gc'));
+                        array($ses, 'write'), array($ses, 'destroy'), array($ses, 'gc'));
                 break;
             case 'native':
                 break;
@@ -52,13 +52,14 @@ class Hayate_Session
 
         // session will not work with a domain without top level
         $domain = $this->config->get('session.domain', $_SERVER['SERVER_NAME']);
-        if (preg_match('/\.?.+\.[a-z]{2,4}/i', $domain) != 1) $domain = '';
+        if(preg_match('/^\.?.+\.[a-z]{2,4}$/i', $domain) != 1)
+            $domain = '';
 
-        session_set_cookie_params((int)$this->config->get('session.lifetime', 0),
-            $this->config->get('session.path', '/'),
-            $domain,
-            $this->config->get('session.secure', false),
-            $this->config->get('session.httponly', false));
+        session_set_cookie_params((int) $this->config->get('session.lifetime', 0),
+                $this->config->get('session.path', '/'),
+                $domain,
+                $this->config->get('session.secure', false),
+                $this->config->get('session.httponly', false));
 
         session_start();
         Hayate_Log::info(sprintf(_('%s initialized.'), __CLASS__));
@@ -66,7 +67,7 @@ class Hayate_Session
 
     public static function getInstance()
     {
-        if (null === self::$instance)
+        if(null === self::$instance)
         {
             self::$instance = new self();
         }
@@ -95,25 +96,26 @@ class Hayate_Session
 
     public function set($name, $value = null)
     {
-        if (is_array($name))
+        if(is_array($name))
         {
-            foreach ($name as $key => $value)
+            foreach($name as $key => $value)
             {
                 $this->set($key, $value);
             }
         }
-        else {
+        else
+        {
             $_SESSION[$name] = $value;
         }
     }
 
     public function get($name = null, $default = null)
     {
-        if (null === $name)
+        if(null === $name)
         {
             return $_SESSION;
         }
-        if (array_key_exists($name, $_SESSION))
+        if(array_key_exists($name, $_SESSION))
         {
             return $_SESSION[$name];
         }
@@ -122,13 +124,13 @@ class Hayate_Session
 
     public function getOnce($name = null, $default = null)
     {
-        if (null === $name)
+        if(null === $name)
         {
             $ans = $_SESSION;
             $_SESSION = array();
             return $ans;
         }
-        if (array_key_exists($name, $_SESSION))
+        if(array_key_exists($name, $_SESSION))
         {
             $value = $this->get($name, $default);
             $this->delete($name);
@@ -139,11 +141,11 @@ class Hayate_Session
 
     public function exists($name)
     {
-        if (array_key_exists($name, $_SESSION))
-	{
-	    return (null !== $_SESSION[$name]);
-	}
-	return false;
+        if(array_key_exists($name, $_SESSION))
+        {
+            return (null !== $_SESSION[$name]);
+        }
+        return false;
     }
 
     public function regenerate()
@@ -167,16 +169,21 @@ class Hayate_Session
      */
     public function delete($name)
     {
-        if (is_array($name))
+        if(is_array($name))
         {
-            foreach ($name as $key) $this->delete($key);
+            foreach($name as $key)
+                $this->delete($key);
         }
-        else if (is_string($name))
+        else if(is_string($name))
         {
-	    unset($_SESSION[$name]);
+            unset($_SESSION[$name]);
         }
     }
 
     // can't clone a session
-    private function __clone() {}
+    private function __clone()
+    {
+        
+    }
+
 }

@@ -28,48 +28,48 @@ abstract class Hayate_View_Abstract
 
     public function assign(array $vars)
     {
-	$this->vars = $vars;
+        $this->vars = $vars;
     }
 
     public function style($href = null, $media = 'screen', $type = 'text/css')
     {
-	if (null === $href)
-	{
-	    return implode("\n", $this->style);
-	}
-	$this->style[] = '<link rel="stylesheet" type="'.$type.
-	    '" media="'.$media.'" href="'.$href.'" />';
-	return true;
+        if(null === $href)
+        {
+            return implode("\n", $this->style);
+        }
+        $this->style[] = '<link rel="stylesheet" type="' . $type .
+                '" media="' . $media . '" href="' . $href . '" />';
+        return true;
     }
 
     public function jscript($src = null, $type = 'text/javascript', $charset = 'UTF-8')
     {
-	if (null === $src)
-	{
-	    return implode("\n", $this->jscript);
-	}
-	$this->jscript[] = '<script type="'.$type.'" src="'.$src.
-	    '" charset="'.$charset.'"></script>';
-	return true;
+        if(null === $src)
+        {
+            return implode("\n", $this->jscript);
+        }
+        $this->jscript[] = '<script type="' . $type . '" src="' . $src .
+                '" charset="' . $charset . '"></script>';
+        return true;
     }
 
     public function meta($name = null, $content = null, $scheme = null)
     {
-	if (null === $name)
-	{
-	    return implode("\n", $this->meta);
-	}
-	$meta = '<meta name="'.$name.'" content="'.$content.'"';
-	$meta .= is_null($scheme) ? ' />' : ' scheme="'.$scheme.'" />';
-	$this->meta[] = $meta;
+        if(null === $name)
+        {
+            return implode("\n", $this->meta);
+        }
+        $meta = '<meta name="' . $name . '" content="' . $content . '"';
+        $meta .= is_null($scheme) ? ' />' : ' scheme="' . $scheme . '" />';
+        $this->meta[] = $meta;
     }
 
     public function hequiv($name = null, $content = null)
     {
-	if (null === $name)
-	{
-	    return implode("\n", $this->hequiv);
-	}
-	$this->meta[] = '<meta http-equiv="'.$name.'" content="'.$content.'" />';
+        if(null === $name)
+        {
+            return implode("\n", $this->hequiv);
+        }
+        $this->meta[] = '<meta http-equiv="'.$name.'" content="'.$content.'" />';
     }
 }

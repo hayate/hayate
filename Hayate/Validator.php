@@ -319,7 +319,7 @@ class Hayate_Validator extends ArrayObject
                 trigger_error("Invalid non numeric param in ".__METHOD__);
                 return false;
             }
-            return (mb_strlen($this[$field], 'UTF-8') <= $params);
+            return (mb_strlen($this[$field], 'UTF-8') >= $params);
         }
         return true;
     }

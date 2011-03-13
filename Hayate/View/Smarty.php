@@ -46,48 +46,45 @@ class Hayate_View_Smarty extends Hayate_View_Abstract implements Hayate_View_Int
                 $this->smarty->$prop = $val;
             }
         }
-	/*
-        if (version_compare($this->smarty->_version, '3.0') < 0)
-        {
-            $this->is_smarty_2 = true;
-        }
-	*/
     }
 
     public static function getInstance()
     {
-	if (null === self::$instance) {
-	    self::$instance = new self();
-	}
+        if(null === self::$instance)
+        {
+            self::$instance = new self();
+        }
         self::$instance->clearAllAssign();
-	return self::$instance;
+        return self::$instance;
     }
 
     public function render($template, array $args = array())
     {
-	$params = array_merge($args, $this->vars);
-	$this->smarty->assign($params);
+        $params = array_merge($args, $this->vars);
+        $this->smarty->assign($params);
         $this->smarty->display($template.'.tpl');
     }
 
     public function fetch($template, array $args = array())
     {
-	$params = array_merge($args, $this->vars);
-	$this->smarty->assign($params);
+        $params = array_merge($args, $this->vars);
+        $this->smarty->assign($params);
         return $this->smarty->fetch($template.'.tpl');
     }
 
     public function __call($method, array $args)
     {
-        try {
+        try
+        {
             $ro = new ReflectionObject($this->smarty);
-            if ($ro->hasMethod($method))
-	    {
+            if($ro->hasMethod($method))
+            {
                 $rm = $ro->getMethod($method);
                 return $rm->invokeArgs($this->smarty, $args);
             }
         }
-        catch (Exception $ex) {
+        catch(Exception $ex)
+        {
             throw new Hayate_View_Exception($ex->getMessage());
         }
     }

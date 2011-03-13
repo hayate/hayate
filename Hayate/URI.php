@@ -110,11 +110,16 @@ class Hayate_URI
     }
 
     /**
-     * TODO: check port issue
+     * @param bool $withport Set to false to retrieve hostname without port, default is true
+     * @return string The hostname of this server with optional port (hostname:port)
      */
-    public function hostname()
+    public function hostname($withport = true)
     {
-        $port = (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != 80) ? ':'.$_SERVER['SERVER_PORT'] : '';
+        $port = '';
+        if (true === $withport)
+        {
+            $port = (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != 80) ? ':'.$_SERVER['SERVER_PORT'] : '';
+        }
         if (isset($_SERVER['SERVER_NAME']) && strlen($_SERVER['SERVER_NAME']) > 0)
         {
             return $_SERVER['SERVER_NAME'].$port;

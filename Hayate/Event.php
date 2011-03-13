@@ -25,9 +25,12 @@ class Hayate_Event
      * @param string|array $callback The callback method to register
      * @return void
      */
-    public static function add($name, $callback)
+    public static function add($name, $callback, array $params = array())
     {
-        self::$events[$name][] = $callback;
+        $event = new stdClass();
+        $event->callback = $callback;
+        $event->params = $params;
+        self::$events[$name][] = $event;
     }
 
     /**
@@ -52,9 +55,10 @@ class Hayate_Event
         {
             while (null !== ($event = array_shift(self::$events[$name])))
             {
-                if (is_callable($event))
+                if (is_callable($event->callback))
                 {
-                    $ret = call_user_func_array($event, $params);
+                    $params = array_merge($params, $event->params);
+                    $ret = call_user_func_array($event->callback, $params);
                     // return if we have a return value, else continue
                     // processing events
                     if (isset($ret))
