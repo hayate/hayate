@@ -203,21 +203,21 @@ final class Hayate_Bootstrap
 
     public static function autoloadDir($dir)
     {
-	    if (is_array($dir))
-	    {
-	        foreach ($dir as $d)
-	        {
-		        self::autoloadDir($d);
-	        }
-	    }
-	    else if (is_dir($dir))
-	    {
-	        $dir = rtrim($dir, '\//') . DIRECTORY_SEPARATOR;
-	        if (! in_array($dir, self::$libdirs))
-	        {
-		        self::$libdirs[] = $dir;
-	        }
-	    }
+        if (is_array($dir))
+        {
+            foreach ($dir as $d)
+            {
+                self::autoloadDir($d);
+            }
+        }
+        else if (is_dir($dir))
+        {
+            $dir = rtrim($dir, '\//') . DIRECTORY_SEPARATOR;
+            if (! in_array($dir, self::$libdirs))
+            {
+                self::$libdirs[] = $dir;
+            }
+        }
     }
 
     public static function modules()

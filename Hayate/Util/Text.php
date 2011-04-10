@@ -20,24 +20,21 @@ class Hayate_Util_Text
 {
     public static function limitChars($text, $size = 80, $end = '&#8230;', $fullword = false)
     {
-	$end = is_null($end) ? '&#8230;' : $end;
+        $end = is_null($end) ? '&#8230;' : $end;
 
-	if ($size > mb_strlen($text, 'UTF-8'))
-	{
-	    return $text;
-	}
-	if ($size <= 0)
-	{
-	    return $end;
-	}
-	if (! $fullword)
-	{
-	    return rtrim(mb_substr($text, 0, $size, 'UTF-8')).$end;
-	}
+        if ($size > mb_strlen($text, 'UTF-8')) {
+            return $text;
+        }
+        if ($size <= 0) {
+            return $end;
+        }
+        if (!$fullword) {
+            return rtrim(mb_substr($text, 0, $size, 'UTF-8')) . $end;
+        }
 
-	$matches = array();
-	preg_match('/.{0,'.preg_quote($size - 1).'}\S*/us', $text, $matches);
+        $matches = array();
+        preg_match('/.{0,' . preg_quote($size - 1) . '}\S*/us', $text, $matches);
 
-	return rtrim($matches[0]).(mb_strlen($matches[0], 'UTF-8') < mb_strlen($text, 'UTF-8') ? $end : '');
+        return rtrim($matches[0]).(mb_strlen($matches[0], 'UTF-8') < mb_strlen($text, 'UTF-8') ? $end : '');
     }
 }

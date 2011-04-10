@@ -49,10 +49,10 @@ class Hayate_View_Native extends Hayate_View_Abstract implements Hayate_View_Int
     public function render($template, array $args = array())
     {
         $params = array_merge($args, $this->vars);
-	    extract($params, EXTR_SKIP);
+        extract($params, EXTR_SKIP);
         ob_start();
         try {
-            require($template.'.php');
+            require($this->template($template));
         }
         catch (Exception $ex) {
             ob_end_clean();
@@ -63,16 +63,35 @@ class Hayate_View_Native extends Hayate_View_Abstract implements Hayate_View_Int
 
     public function fetch($template, array $args = array())
     {
-	$params = array_merge($args, $this->vars);
-	extract($params, EXTR_SKIP);
+        $params = array_merge($args, $this->vars);
+        extract($params, EXTR_SKIP);
         ob_start();
         try {
-            require($template.'.php');
+            require($this->template($template));
         }
         catch (Exception $ex) {
             ob_end_clean();
             throw $ex;
         }
         return ob_get_clean();
+    }
+
+    /**
+     * If present return the template in the current module
+     *
+     * @param string $template
+     * @return string
+     */
+    protected function template($template)
+    {
+        // retrieve current module
+        $module = Hayate_Dispatcher::getInstance()->module();
+        $template = ltrim($template, '\//');
+        $tplfile = MODPATH . $module . DIRECTORY_SEPARATOR . 'views' . DIRECTORY_SEPARATOR . $template.'.php';
+        if (is_file($tplfile))
+        {
+            return $tplfile;
+        }
+        return $template.'.php';
     }
 }

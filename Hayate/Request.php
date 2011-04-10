@@ -74,8 +74,8 @@ class Hayate_Request
 
     public function isAjax()
     {
-	return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
-		strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
+        return (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+                strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest');
     }
 
     /**
@@ -86,17 +86,18 @@ class Hayate_Request
      */
     public function redirect($location, $code = 302)
     {
-	if (false === stripos($location, 'http', 0))
-	{
-	    $path = ltrim($location, '/');
-	    $location = 'http://'.Hayate_URI::getInstance()->hostname();
-	    $location .= '/'.$path;
-	}
+        if (false === stripos($location, 'http', 0))
+        {
+            $path = ltrim($location, '/');
+            $location = Hayate_URI::getInstance()->scheme() . '://' . Hayate_URI::getInstance()->hostname();
+            $location .= '/' . $path;
+        }
         header('Location: '.$location);
-        if ($this->method() != 'head') {
+        if ($this->method() != 'head')
+        {
             exit('<h1>'.$code.' - Found</h1><p><a href="'.$location.'">'.$location.'</a>');
         }
-	exit();
+        exit();
     }
 
     public function refresh()

@@ -36,7 +36,7 @@ abstract class Hayate_ORM
 
     public function __construct($id = null)
     {
-        if (! isset($this->table_name)) 
+        if (! isset($this->table_name))
         {
             $this->table_name = strtolower(str_ireplace('_model', '', get_class($this)));
         }
@@ -143,7 +143,7 @@ abstract class Hayate_ORM
     {
         if (null !== $id)
         {
-	    $this->db->delete($this->table_name, array($this->primaryField($id) => $id));
+        $this->db->delete($this->table_name, array($this->primaryField($id) => $id));
         }
         else {
             if (! $this->loaded())
@@ -157,7 +157,7 @@ abstract class Hayate_ORM
 
     public function count(array $where = array())
     {
-	return $this->db->count($this->table_name, $where);
+    return $this->db->count($this->table_name, $where);
     }
 
     /**
@@ -210,34 +210,34 @@ abstract class Hayate_ORM
         {
             return $this->fields[$name]->value;
         }
-	else if (isset($this->cache[$name]))
-	{
-	    return $this->cache[$name];
-	}
-	else if (in_array($name, $this->hasOne))
-	{
-	    $fk = $name.'_id';
-	    $orm = Hayate_ORM::factory($name, $this->$fk);
-	    if ($orm->loaded())
-	    {
-		$this->cache[$name] = $orm;
-		return $orm;
-	    }
-	    return null;
-	}
-	else if (in_array($name, $this->hasMany))
-	{
-	    $fk = $this->class_name.'_id';
-	    $orm = Hayate_ORM::factory($name)
-		->where($fk, $this->{$this->primary_key})
-		->findAll();
-	    if ($orm instanceof Hayate_Database_Iterator)
-	    {
-		$this->cache[$name] = $orm;
-		return $orm;
-	    }
-	    return null;
-	}
+        else if (isset($this->cache[$name]))
+        {
+            return $this->cache[$name];
+        }
+        else if (in_array($name, $this->hasOne))
+        {
+            $fk = $name.'_id';
+            $orm = Hayate_ORM::factory($name, $this->$fk);
+            if ($orm->loaded())
+            {
+                $this->cache[$name] = $orm;
+                return $orm;
+            }
+            return null;
+        }
+        else if (in_array($name, $this->hasMany))
+        {
+            $fk = $this->class_name.'_id';
+            $orm = Hayate_ORM::factory($name)
+                ->where($fk, $this->{$this->primary_key})
+                ->findAll();
+            if ($orm instanceof Hayate_Database_Iterator)
+            {
+                $this->cache[$name] = $orm;
+                return $orm;
+            }
+            return null;
+        }
         throw new Hayate_Database_Exception(sprintf(_('Field %s does not exists.'), $name));
     }
 

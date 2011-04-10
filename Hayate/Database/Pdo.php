@@ -71,8 +71,8 @@ class Hayate_Database_Pdo extends PDO
                 switch ($driver)
                 {
                 case 'mysql':
-		    $stmt = $this->prepare("SET NAMES ?");
-		    break;
+            $stmt = $this->prepare("SET NAMES ?");
+            break;
                 case 'pgsql':
                     $stmt = $this->prepare("SET NAMES '?'");
                 break;
@@ -268,31 +268,31 @@ class Hayate_Database_Pdo extends PDO
 
     public function exec($sql)
     {
-	$this->reset();
-	return parent::exec($sql);
+    $this->reset();
+    return parent::exec($sql);
     }
 
     public function query($sql)
     {
-	$this->reset();
-	$argc = func_num_args();
-	switch ($argc)
-	{
-	case 2:
-	    $mode = func_get_arg(1);
-	    return parent::query($sql, $mode);
-	case 3:
-	    $mode = func_get_arg(1);
-	    $arg3 = func_get_arg(2);
-	    return parent::query($sql, $mode, $arg3);
-	case 4:
-	    $mode = func_get_arg(1);
-	    $arg3 = func_get_arg(2);
-	    $arg4 = func_get_arg(3);
-	    return parent::query($sql, $mode, $arg3, $arg4);
-	default:
-	    return parent::query($sql);
-	}
+        $this->reset();
+        $argc = func_num_args();
+        switch ($argc)
+        {
+        case 2:
+            $mode = func_get_arg(1);
+            return parent::query($sql, $mode);
+        case 3:
+            $mode = func_get_arg(1);
+            $arg3 = func_get_arg(2);
+            return parent::query($sql, $mode, $arg3);
+        case 4:
+            $mode = func_get_arg(1);
+            $arg3 = func_get_arg(2);
+            $arg4 = func_get_arg(3);
+            return parent::query($sql, $mode, $arg3, $arg4);
+        default:
+            return parent::query($sql);
+        }
     }
 
     /**
@@ -368,19 +368,19 @@ class Hayate_Database_Pdo extends PDO
             $this->where($where);
             $sql .= ' WHERE '.implode(' ', $this->where);
         }
-	else if (count($this->where))
-	{
-	    $sql .= ' WHERE '.implode(' ', $this->where);
-	}
-	try {
-	    $ret = $this->query($sql, self::FETCH_COLUMN, 0)
-		->fetch(self::FETCH_NUM);
-	    return $ret[0];
-	}
-	catch (Exception $ex) {
-	    Hayate_Log::error("{$ex}");
-	}
-	return 0;
+        else if (count($this->where))
+        {
+            $sql .= ' WHERE '.implode(' ', $this->where);
+        }
+        try {
+            $ret = $this->query($sql, self::FETCH_COLUMN, 0)
+            ->fetch(self::FETCH_NUM);
+            return $ret[0];
+        }
+        catch (Exception $ex) {
+            Hayate_Log::error("{$ex}");
+        }
+        return 0;
     }
 
     public function where($field, $value = null)
@@ -609,7 +609,7 @@ class Hayate_Database_Pdo extends PDO
         $sql .= (count($this->groupby) > 0) ? ' GROUP BY '.implode(',', $this->groupby) : '';
         $sql .= (count($this->orderby) > 0) ? ' ORDER BY '.implode(', ', $this->orderby) : '';
         $sql .= $this->compileLimit();
-	return $sql;
+        return $sql;
     }
 
     protected function compileLimit()

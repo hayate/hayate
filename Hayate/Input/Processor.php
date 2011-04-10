@@ -47,11 +47,6 @@ abstract class Hayate_Input_Processor
         $this->val->addError($error);
     }
 
-    public function setError($error)
-    {
-        $this->val->setError($error);
-    }
-
     public function getProperty($name, $default = null)
     {
         if (array_key_exists($name, $this->props))

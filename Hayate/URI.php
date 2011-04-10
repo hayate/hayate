@@ -147,11 +147,11 @@ class Hayate_URI
 
     public function toUrl($path)
     {
-	if (false !== stripos($path, 'http'))
-	{
-	    return $path;
-	}
-	return 'http://'.$this->hostname() .'/'.ltrim($path, '/');
+        if (false !== stripos($path, 'http'))
+        {
+            return $path;
+        }
+        return $this->scheme() . '://' . $this->hostname() . '/' . ltrim($path, '/');
     }
 
     public function __toString()
