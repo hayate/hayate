@@ -7,48 +7,6 @@
 namespace Hayate\View {
 
     class Exception extends \Exception {}
-
-    class Config
-    {
-        protected static $config;
-
-        public static function config(array $config)
-        {
-            self::$config = $config;
-        }
-
-        public static function get($name, $default = NULL)
-        {
-            $pos = strpos($name, '.');
-            if (FALSE === $pos)
-            {
-                return isset(self::$config[$name]) ? self::$config[$name] : $default;
-            }
-            $keys = array();
-            while ($pos !== FALSE)
-            {
-                $key = substr($name, 0, $pos);
-                if (! empty($key))
-                {
-                    $keys[] = $key;
-                }
-                $name = substr($name, ++$pos);
-                $pos = strpos($name, '.');
-                if (FALSE === $pos && $name !== FALSE)
-                {
-                    $keys[] = $name;
-                }
-            }
-            $value = isset(self::$config[$keys[0]]) ? self::$config[$keys[0]] : NULL;
-            if (NULL === $value) return $default;
-
-            for ($i = 1; $i < count($keys); $i++)
-            {
-                $value = (is_array($value) && isset($value[$keys[$i]])) ? $value[$keys[$i]] : NULL;
-            }
-            return (NULL !== $value) ? $value : $default;
-        }
-    }
 }
 
 namespace Hayate {
@@ -64,6 +22,22 @@ namespace Hayate {
          * @return string
          */
         public function fetch($template);
+    }
+
+    abstract class AView
+    {
+        protected $basepath;
+
+        protected function __construct()
+        {
+            $this->basepath = \Hayate\View\Config::get('view.basepath',
+                                                       dirname($_SERVER['DOCUMENT_ROOT']).'/view');
+        }
+
+        public function setBasePath($basepath)
+        {
+            $this->basepath = $basepath;
+        }
     }
 
     class View
@@ -121,13 +95,14 @@ namespace Hayate {
 
 namespace Hayate\View {
 
-    class Native implements \Hayate\IView
+    class Native extends \Hayate\AView implements \Hayate\IView
     {
         protected static $instance = NULL;
         protected $var;
 
         protected function __construct()
         {
+            parent::__construct();
             $this->var = array();
         }
 

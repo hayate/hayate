@@ -4,264 +4,390 @@
  * @license http://www.opensource.org/licenses/mit-license.php
  * date: Mon Apr 25 05:32:28 JST 2011
  */
-namespace Hayate;
+namespace Hayate {
 
-class Exception extends \Exception {}
-
-class URI
-{
-    protected $scheme;
-    protected $hostname;
-    protected $port;
-    protected $path;
-    protected $query;
-    protected $current;
-
-    protected static $instance = NULL;
+    class Exception extends \Exception {}
 
 
-    protected function __construct()
+    abstract class Event
     {
-        $this->current = $this->scheme().'://'.$this->hostname();
-        $this->current .= strlen($this->port()) ? ':'.$this->port() : '';
-        $this->current .= '/'.$this->path();
-        $this->current .= mb_strlen($this->query(), 'UTF-8') ? '?'.$this->query() : '';
+        protected $events = array();
 
-    }
-
-    public static function getInstance()
-    {
-        if (NULL === self::$instance)
+        public function register($name, $callback, array $args = array(), &$ret = NULL)
         {
-            self::$instance = new self();
+            $event = new \stdClass();
+            $event->callback = $callback;
+            $event->args = $args;
+            $event->ret = $ret;
+            $this->events[$name][] = $event;
         }
-        return self::$instance;
-    }
 
-    public function scheme()
-    {
-        if (isset($this->scheme)) return $this->scheme;
-
-        $this->scheme = (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && ('off' != $_SERVER['HTTPS'])) ? 'https' : 'http';
-        return $this->scheme;
-    }
-
-    public function hostname()
-    {
-        if (isset($this->hostname)) return $this->hostname;
-
-        $this->hostname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] :
-            isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : isset($_SERVER['HTTP_HOST']) ?
-            $_SERVER['HTTP_HOST'] : '';
-
-        return $this->hostname;
-    }
-
-    public function port()
-    {
-        if (isset($this->port)) return $this->port;
-
-        $this->port = isset($_SERVER['SERVER_PORT']) && ($_SERVER['SERVER_PORT'] != '80') ? $_SERVER['SERVER_PORT'] : '';
-        return $this->port;
-    }
-
-    public function path()
-    {
-        if (isset($this->path)) return $this->path;
-
-        switch (true)
+        public function unregister($name)
         {
-        case isset($_SERVER['REQUEST_URI']):
-            $this->path = $_SERVER['REQUEST_URI'];
-            // make sure there is no query part
-            $this->path = str_replace('?'.$_SERVER['QUERY_STRING'], '', $this->path);
-            break;
-        case isset($_SERVER['PATH_INFO']):
-            $this->path = $_SERVER['PATH_INFO'];
-            break;
-        case isset($_SERVER['ORIG_PATH_INFO']):
-            $this->path = $_SERVER['ORIG_PATH_INFO'];
-            break;
+            if (isset($this->events[$name]))
+            {
+                unset($this->events[$name]);
+            }
         }
-        $this->path = trim($this->path, '/');
-        return $this->path;
-    }
 
-    public function query()
-    {
-        if (isset($this->query)) return $this->query;
-
-        $this->query = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
-        return $this->query;
-    }
-
-    public function current()
-    {
-        return $this->current;
-    }
-}
-
-class Request
-{
-
-}
-
-class Dispatcher
-{
-    protected $config;
-    protected $module_dir;
-    protected $path;
-
-    public function __construct(array $config)
-    {
-        $this->config = $config;
-        $this->module_dir = realpath($_SERVER['DOCUMENT_ROOT'] .'/'.$config['module_dir']);
-        $this->path = URI::getInstance()->path();
-    }
-
-    public function dispatch()
-    {
-        $bits = array();
-        $parts = array();
-        // if is empty we use all defaults
-        if (empty($this->path))
+        public function fire($name)
         {
-            $bits = $this->findController();
+            if (isset($this->events[$name]))
+            {
+                for ($i = 0; $i < count($this->events[$name]); $i++)
+                {
+                    $event = $this->events[$name][$i];
+                    switch (count($event->args))
+                    {
+                    case 0:
+                        $event->ret = call_user_func($event->callback);
+                        break;
+                    case 1:
+                        $event->ret = call_user_func($event->callback, $event->args[0]);
+                        break;
+                    case 2:
+                        $event->ret = call_user_func($event->callback, $event->args[0], $event->args[1]);
+                        break;
+                    case 3:
+                        $event->ret = call_user_func($event->callback, $event->args[0], $event->args[1], $event->args[2]);
+                        break;
+                    case 4:
+                        $event->ret = call_user_func($event->callback, $event->args[0], $event->args[1], $event->args[2], $event->args[3]);
+                        break;
+                    case 5:
+                        $event->ret = call_user_func($event->callback, $event->args[0], $event->args[1], $event->args[2], $event->args[3], $event->args[4]);
+                        break;
+                    default:
+                        $event->ret = call_user_func_array($event->callback, $event->args);
+                    }
+
+                }
+                unset($this->events[$name]);
+            }
         }
-        else {
+    }
+
+    class URI
+    {
+        protected $scheme;
+        protected $hostname;
+        protected $port;
+        protected $path;
+        protected $query;
+        protected $current;
+
+        protected static $instance = NULL;
+
+
+        protected function __construct()
+        {
+            $this->current = $this->scheme().'://'.$this->hostname();
+            $this->current .= strlen($this->port()) ? ':'.$this->port() : '';
+            $this->current .= '/'.$this->path();
+            $this->current .= mb_strlen($this->query(), 'UTF-8') ? '?'.$this->query() : '';
+        }
+
+        public static function getInstance()
+        {
+            if (NULL === self::$instance)
+            {
+                self::$instance = new self();
+            }
+            return self::$instance;
+        }
+
+        public function scheme()
+        {
+            if (isset($this->scheme)) return $this->scheme;
+
+            $this->scheme = (isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && ('off' != $_SERVER['HTTPS'])) ? 'https' : 'http';
+            return $this->scheme;
+        }
+
+        public function hostname()
+        {
+            if (isset($this->hostname)) return $this->hostname;
+
+            $this->hostname = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] :
+                isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : isset($_SERVER['HTTP_HOST']) ?
+                $_SERVER['HTTP_HOST'] : '';
+
+            return $this->hostname;
+        }
+
+        public function port()
+        {
+            if (isset($this->port)) return $this->port;
+
+            $this->port = isset($_SERVER['SERVER_PORT']) && ($_SERVER['SERVER_PORT'] != '80') ? $_SERVER['SERVER_PORT'] : '';
+            return $this->port;
+        }
+
+        public function path()
+        {
+            if (isset($this->path)) return $this->path;
+
+            switch (true)
+            {
+            case isset($_SERVER['REQUEST_URI']):
+                $this->path = $_SERVER['REQUEST_URI'];
+                // make sure there is no query part
+                $this->path = str_replace('?'.$_SERVER['QUERY_STRING'], '', $this->path);
+                break;
+            case isset($_SERVER['PATH_INFO']):
+                $this->path = $_SERVER['PATH_INFO'];
+                break;
+            case isset($_SERVER['ORIG_PATH_INFO']):
+                $this->path = $_SERVER['ORIG_PATH_INFO'];
+                break;
+            }
+            $this->path = trim($this->path, '/');
+            return $this->path;
+        }
+
+        public function query()
+        {
+            if (isset($this->query)) return $this->query;
+
+            $this->query = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
+            return $this->query;
+        }
+
+        public function current()
+        {
+            return $this->current;
+        }
+    }
+
+    class Request
+    {
+
+    }
+
+    /**
+     * Maps URI path to a model, controller and action
+     * fires the Routed event when done
+     */
+    class Router
+    {
+        protected static $instance = NULL;
+
+        protected $module_dir;
+        protected $path;
+        protected $routes; // not yet used
+
+        protected $module;
+        protected $controller;
+        protected $action;
+        protected $args;
+
+        protected $default_module;
+        protected $default_controller;
+        protected $default_action;
+
+
+        protected function __construct()
+        {
+            $this->module_dir = realpath($_SERVER['DOCUMENT_ROOT'] .'/'.$config['module_dir']);
+            $this->path = URI::getInstance()->path();
+            $this->args = array(); // action arguments
+        }
+
+        public static function getInstance()
+        {
+            if (NULL === self::$instance)
+            {
+                self::$instance = new self();
+            }
+            return self::$instance;
+        }
+
+        public function route($module_dir)
+        {
+
+            if (empty($this->path))
+            {
+                $this->module = $this->config['default_module'];
+                $this->controller = $this->config['default_controller'];
+                $this->action = $this->config['default_action'];
+
+                return;
+            }
             $parts = preg_split('/\//', $this->path, -1, PREG_SPLIT_NO_EMPTY);
-            $bits = $this->findController($parts);
+            $module = array_shift($parts);
+            if ('index.php' == $module)
+            {
+                // we are not using a url rewrite engine
+                if (empty($parts))
+                {
+                    $this->module = $this->config['default_module'];
+                    $this->controller = $this->config['default_controller'];
+                    $this->action = $this->config['default_action'];
+
+                    return;
+                }
+                else {
+                    // lets shift again
+                    $module = array_shift($parts);
+                }
+            }
+            if ($this->isModule($module))
+            {
+                $this->module = $module;
+                if (count($parts) > 0)
+                {
+                    $this->controller = array_shift($parts);
+                    if (count($parts) > 0)
+                    {
+                        $this->action = array_shift($parts);
+                    }
+                    else {
+                        $this->action = $this->config['default_action'];
+                    }
+                }
+                else {
+                    $this->controller = $this->config['default_controller'];
+                    $this->action = $this->config['default_action'];
+                }
+            }
+            else {
+                // $module is considered to be a controller
+                $this->module = $this->config['default_module'];
+                $this->controller = $module;
+                $this->action = $this->config['default_action'];
+            }
+            // assign left over parts to action arguments
+            $this->args = $parts;
         }
-        if (! is_file($bits['controllerPath']))
+
+        public function module()
         {
-            throw new Exception(URI::getInstance()->current(), 404);
+            return $this->module;
         }
-        require_once $bits['controllerPath'];
-        $classname = $bits['moduleName'].'\Controller\\'.$bits['controllerName'];
-        $controller = new $classname();
-        $action = NULL;
-        if (is_callable(array($controller, $bits['actionName'])))
+
+        public function controller()
         {
-            $action = $bits['actionName'];
+            return $this->controller;
         }
-        else if (is_callable(array($controller, '__call')))
+
+        public function action()
         {
-            $args = $parts;
-            unset($parts);
-            $parts = array();
-            $parts[] = '__call';
-            $parts[] = $args;
+            return $this->action;
         }
-        if ($action == NULL)
+
+        public function args()
         {
-            throw new Exception(URI::getInstance()->current(), 404);
+            return $this->args;
         }
-        switch (count($parts))
+
+        public function modulePath()
         {
-        case 0:
-            $controller->$action();
-            break;
-        case 1:
-            $controller->$action($parts[0]);
-            break;
-        case 2:
-            $controller->$action($parts[0], $parts[1]);
-            break;
-        case 3:
-            $controller->$action($parts[0], $parts[1], $parts[2]);
-            break;
-        case 4:
-            $controller->$action($parts[0], $parts[1], $parts[2], $parts[3]);
-            break;
-        case 5:
-            $controller->$action($parts[0], $parts[1], $parts[2], $parts[3], $pargs[4]);
-            break;
-        default:
-            // all right then
-            call_user_func_array(array($controller, $action), $parts);
+            return $this->module_dir;
+        }
+
+        public function addRoute(array $route)
+        {
+            throw new Exception(__METHOD__.' '._('Not yet implemented'));
+        }
+
+        private function isModule($module)
+        {
+            return is_dir($this->module_dir .'/'.$module);
         }
     }
 
     /**
-     * @return array With controllerPath, moduleName, controllerName, actionName
+     * Finishes off the job started by the router,
+     * it dispatches the request to the model/controller/action
+     * assigned by the router
+     * it fires Dispatched event when done
      */
-    protected function findController(array &$parts = array())
+    class Dispatcher
     {
-        if (empty($parts))
+        const Dispatched = 'Dispatched';
+
+        public function __construct() {}
+
+
+        public function dispatch(Router $router)
         {
-            return array('moduleName' => $this->config['default_module'],
-                         'controllerName' => $this->config['default_controller'],
-                         'actionName' => $this->config['default_action'],
-                         'controllerPath' => $this->module_dir.'/'.$this->config['default_module'].'/controller/'.
-                         $this->config['default_controller'].'.php');
-        }
-        $ret = array();
-        $module = array_shift($parts);
-        if ('index.php' == $module)
-        {
-            // we are not using a url rewrite engine
-            if (empty($parts))
+            $controllerPath = $router->modulePath() .'/'. $router->module() .'/controller/'. $router->controller() .'.php';
+            if (! is_file($controllerPath))
             {
-                return array('moduleName' => $this->config['default_module'],
-                             'controllerName' => $this->config['default_controller'],
-                             'actionName' => $this->config['default_action'],
-                             'controllerPath' => $this->module_dir.'/'.$this->config['default_module'].'/controller/'.
-                             $this->config['default_controller'].'.php');
+                throw new Exception(URI::getInstance()->current(), 404);
             }
-            // lets shift again
-            $module = array_shift($parts);
-        }
-        if ($this->isModule($module))
-        {
-            $ret['moduleName'] = $module;
-            if (count($parts) > 0)
+
+            require_once $controllerPath;
+            $classname = $router->module().'\Controller\\'.$router->controller();
+            $controller = new $classname();
+            $action = $router->action();
+            $parts = $router->args();
+
+            switch (count($parts))
             {
-                $ret['controllerName'] = array_shift($parts);
-                $ret['controllerPath'] = $this->module_dir.'/'.$module.'/controller/'.$ret['controllerName'].'.php';
-                if (count($parts) > 0)
-                {
-                    $ret['actionName'] = array_shift($parts);
-                }
-                else {
-                    $ret['actionName'] = $this->config['default_action'];
-                }
+            case 0:
+                $controller->$action();
+                break;
+            case 1:
+                $controller->$action($parts[0]);
+                break;
+            case 2:
+                $controller->$action($parts[0], $parts[1]);
+                break;
+            case 3:
+                $controller->$action($parts[0], $parts[1], $parts[2]);
+                break;
+            case 4:
+                $controller->$action($parts[0], $parts[1], $parts[2], $parts[3]);
+                break;
+            case 5:
+                $controller->$action($parts[0], $parts[1], $parts[2], $parts[3], $pargs[4]);
+                break;
+            default:
+                // all right then
+                call_user_func_array(array($controller, $action), $parts);
             }
-            else {
-                $ret['controllerName'] = $this->config['default_controller'];
-                $ret['actionName'] = $this->config['default_action'];
-                $ret['controllerPath'] = $this->module_dir.'/'.$module.'/controller/'.$ret['controllerName'].'.php';
-            }
+            $controller->fire(Dispatcher::Dispatched);
         }
-        else {
-            // $module is considered to be a controller
-            $ret['moduleName'] = $this->config['default_module'];
-            $ret['controllerName'] = $module;
-            $ret['actionName'] = $this->config['default_action'];
-            $ret['controllerPath'] = $this->module_dir.'/'.$ret['moduleName'].'/controller/'.$ret['controllerName'].'.php';
-        }
-        return $ret;
     }
 
-    private function isModule($module)
+    abstract class Controller extends Event
     {
-        return is_dir($this->module_dir .'/'.$module);
+        public function __construct()
+        {
+            var_dump(__METHOD__);
+            $this->register(Dispatcher::Dispatched, array($this, 'dispatched'));
+        }
+        protected function dispatched() {}
     }
 }
 
-abstract class Controller
-{
-    private $template = 'template.html';
+namespace Hayate\View {
 
-    public function __construct()
+    abstract class Controller extends \Hayate\Controller
     {
-        var_dump(__METHOD__);
-        $this->view = NULL;
-        require_once 'View.php';
-        $v = new \Hayate\View('bla');
-    }
+        protected $template = 'template.html';
+        protected $render = FALSE;
 
-    public function __set($name, $value)
-    {
+        public function __construct()
+        {
+            parent::__construct();
+            require_once 'View.php';
 
+            if (TRUE === $this->render)
+            {
+                $this->template = new \Hayate\View($this->template);
+                $this->register(\Hayate\Dispatcher::Dispatched, array($this, 'render'));
+            }
+        }
+
+        protected function render()
+        {
+            if ($this->render)
+            {
+                var_dump('Rendering: '.__METHOD__);
+            }
+        }
     }
 }
+

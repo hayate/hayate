@@ -6,6 +6,9 @@
  */
 require_once 'Controller.php';
 
+use Hayate\Config;
+use Hayate\Router;
+
 
 class Hayate
 {
@@ -13,32 +16,35 @@ class Hayate
     private $module_dir;
     private $config;
 
-    private function __construct(array $config)
+    private function __construct($config)
     {
-        if (isset($config['view']))
-        {
-            require_once 'View.php';
-            Hayate\View\Config::config($config);
-            unset($config['view']);
-        }
-        $this->module_dir = realpath($_SERVER['DOCUMENT_ROOT'].'/'.$config['module_dir']);
-        $this->config = $config;
+        require_once 'Config.php';
+        $this->config = new Config($config);
+
+        $this->module_dir = realpath($_SERVER['DOCUMENT_ROOT'].'/'.$this->config->module_dir);
         spl_autoload_register(array($this, 'autoload'));
     }
 
+    /**
+     * @param string $config Path to a configuration file returning an array
+     */
     public static function getInstance($config)
     {
         if (NULL === self::$instance)
         {
-            self::$instance = new self(require_once $config);
+            self::$instance = new self($config);
         }
         return self::$instance;
     }
 
     public function run()
     {
-        $dispatcher = new Hayate\Dispatcher($this->config);
-        $dispatcher->dispatch();
+        $router = Router::getInstance();
+        $router->setConfig($this->config);
+        $router->route($this->module_dir);
+
+        $dispatcher = new Hayate\Dispatcher();
+        $dispatcher->dispatch($router);
     }
 
     private function autoload($classname)
