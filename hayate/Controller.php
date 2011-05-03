@@ -172,7 +172,8 @@ namespace Hayate {
     {
         protected static $instance = NULL;
 
-        protected $module_dir;
+        protected $config;
+        protected $modules;
         protected $path;
         protected $routes; // not yet used
 
@@ -181,30 +182,24 @@ namespace Hayate {
         protected $action;
         protected $args;
 
-        protected $default_module;
-        protected $default_controller;
-        protected $default_action;
 
-
-        protected function __construct()
+        public function __construct(array $config)
         {
-            $this->module_dir = realpath($_SERVER['DOCUMENT_ROOT'] .'/'.$config['module_dir']);
+            require_once 'Util.php';
+
+            $reg = \Hayate\Util\Registry::getInstance();
+            $reg->set('router', $this);
+
+            $this->config = $config;
+            $this->modules = $reg->get('modules');
             $this->path = URI::getInstance()->path();
             $this->args = array(); // action arguments
+
+            $this->route();
         }
 
-        public static function getInstance()
+        protected function route()
         {
-            if (NULL === self::$instance)
-            {
-                self::$instance = new self();
-            }
-            return self::$instance;
-        }
-
-        public function route($module_dir)
-        {
-
             if (empty($this->path))
             {
                 $this->module = $this->config['default_module'];
@@ -280,9 +275,9 @@ namespace Hayate {
             return $this->args;
         }
 
-        public function modulePath()
+        public function modulesPath()
         {
-            return $this->module_dir;
+            return $this->modules;
         }
 
         public function addRoute(array $route)
@@ -292,7 +287,7 @@ namespace Hayate {
 
         private function isModule($module)
         {
-            return is_dir($this->module_dir .'/'.$module);
+            return is_dir($this->modules .'/'.$module);
         }
     }
 
@@ -304,14 +299,12 @@ namespace Hayate {
      */
     class Dispatcher
     {
-        const Dispatched = 'Dispatched';
-
         public function __construct() {}
 
 
         public function dispatch(Router $router)
         {
-            $controllerPath = $router->modulePath() .'/'. $router->module() .'/controller/'. $router->controller() .'.php';
+            $controllerPath = $router->modulesPath() .'/'. $router->module() .'/controller/'. $router->controller() .'.php';
             if (! is_file($controllerPath))
             {
                 throw new Exception(URI::getInstance()->current(), 404);
@@ -319,7 +312,10 @@ namespace Hayate {
 
             require_once $controllerPath;
             $classname = $router->module().'\Controller\\'.$router->controller();
+
             $controller = new $classname();
+            $controller->fire(Controller::PreAction);
+
             $action = $router->action();
             $parts = $router->args();
 
@@ -347,18 +343,23 @@ namespace Hayate {
                 // all right then
                 call_user_func_array(array($controller, $action), $parts);
             }
-            $controller->fire(Dispatcher::Dispatched);
+            $controller->fire(Controller::PostAction);
         }
     }
 
     abstract class Controller extends Event
     {
+        const PreAction = 'PreAction';
+        const PostAction = 'PostAction';
+
         public function __construct()
         {
             var_dump(__METHOD__);
-            $this->register(Dispatcher::Dispatched, array($this, 'dispatched'));
+            $this->register(self::PreAction, array($this, 'preAction'));
+            $this->register(self::PostAction, array($this, 'postAction'));
         }
-        protected function dispatched() {}
+        protected function preAction() {}
+        protected function postAction() {}
     }
 }
 
@@ -366,8 +367,8 @@ namespace Hayate\View {
 
     abstract class Controller extends \Hayate\Controller
     {
-        protected $template = 'template.html';
-        protected $render = FALSE;
+        protected $template = 'template';
+        protected $render = TRUE;
 
         public function __construct()
         {
@@ -377,7 +378,7 @@ namespace Hayate\View {
             if (TRUE === $this->render)
             {
                 $this->template = new \Hayate\View($this->template);
-                $this->register(\Hayate\Dispatcher::Dispatched, array($this, 'render'));
+                $this->register(\Hayate\Controller::PostAction, array($this, 'render'));
             }
         }
 
@@ -385,7 +386,7 @@ namespace Hayate\View {
         {
             if ($this->render)
             {
-                var_dump('Rendering: '.__METHOD__);
+                $this->template->render();
             }
         }
     }

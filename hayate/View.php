@@ -26,27 +26,22 @@ namespace Hayate {
 
     abstract class AView
     {
-        protected $basepath;
 
         protected function __construct()
         {
-            $this->basepath = \Hayate\View\Config::get('view.basepath',
-                                                       dirname($_SERVER['DOCUMENT_ROOT']).'/view');
-        }
 
-        public function setBasePath($basepath)
-        {
-            $this->basepath = $basepath;
         }
     }
 
     class View
     {
         protected $view;
+        protected $template;
 
         public function __construct($template)
         {
             $this->view = self::factory();
+            $this->template = $template;
         }
 
         /**
@@ -54,7 +49,7 @@ namespace Hayate {
          */
         public function render()
         {
-
+            $this->view->render($this->template);
         }
 
         /**
@@ -82,7 +77,9 @@ namespace Hayate {
 
         protected static function factory()
         {
-            $name = \Hayate\View\Config::get('view.name');
+            $config = \Hayate\Util\Registry::getInstance()->get('config');
+            $name = $config->view['name'];
+
             $classname = "\Hayate\View\\$name";
             if (! class_exists($classname, false))
             {
@@ -120,7 +117,7 @@ namespace Hayate\View {
          */
         public function render($template)
         {
-
+            var_dump("will render template: {$template}");
         }
 
         /**

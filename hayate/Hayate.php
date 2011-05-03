@@ -5,23 +5,21 @@
  * date: Mon Apr 25 08:26:23 JST 2011
  */
 require_once 'Controller.php';
-
-use Hayate\Config;
-use Hayate\Router;
+require_once 'Util.php';
 
 
 class Hayate
 {
     private static $instance = NULL;
-    private $module_dir;
-    private $config;
+    private $reg;
 
     private function __construct($config)
     {
-        require_once 'Config.php';
-        $this->config = new Config($config);
+        $conf = new \Hayate\Util\Config($config);
+        $this->reg = \Hayate\Util\Registry::getInstance();
+        $this->reg->set('config', $conf);
+        $this->reg->set('modules', realpath($_SERVER['DOCUMENT_ROOT'].'/'.$conf->router['modules']));
 
-        $this->module_dir = realpath($_SERVER['DOCUMENT_ROOT'].'/'.$this->config->module_dir);
         spl_autoload_register(array($this, 'autoload'));
     }
 
@@ -39,19 +37,20 @@ class Hayate
 
     public function run()
     {
-        $router = Router::getInstance();
-        $router->setConfig($this->config);
-        $router->route($this->module_dir);
+        $config = $this->reg->get('config');
 
         $dispatcher = new Hayate\Dispatcher();
-        $dispatcher->dispatch($router);
+        $dispatcher->dispatch(new \Hayate\Router($config->router));
     }
 
+    /**
+     * autoload controllers
+     */
     private function autoload($classname)
     {
         if (strpos($classname, 'Controller') > 0)
         {
-            require $this->module_dir .'/'. $this->classToPath($classname);
+            require $this->reg->get('modules') .'/'. $this->classToPath($classname);
         }
     }
 

@@ -1,1 +1,5 @@
-k
+access.log
+error.log
+htdocs/*
+modules/*
+config.php
