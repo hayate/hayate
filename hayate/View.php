@@ -11,6 +11,8 @@ namespace Hayate\View {
 
 namespace Hayate {
 
+    require_once 'Util.php';
+
     interface IView
     {
         /**
@@ -26,10 +28,13 @@ namespace Hayate {
 
     abstract class AView
     {
+        protected $config;
+        protected $vars;
 
         protected function __construct()
         {
-
+            $this->config = \Hayate\Util\Registry::getInstance()->get('config')->view;
+            $this->vars = array();
         }
     }
 
@@ -40,7 +45,8 @@ namespace Hayate {
 
         public function __construct($template)
         {
-            $this->view = self::factory();
+            $config = \Hayate\Util\Registry::getInstance()->get('config');
+            $this->view = self::factory($config->view);
             $this->template = $template;
         }
 
@@ -57,7 +63,7 @@ namespace Hayate {
          */
         public function fetch()
         {
-
+            return $this->view->fetch($this->template);
         }
 
         public function __get($name)
@@ -75,11 +81,9 @@ namespace Hayate {
             return $this->fetch();
         }
 
-        protected static function factory()
+        protected static function factory(array $config)
         {
-            $config = \Hayate\Util\Registry::getInstance()->get('config');
-            $name = $config->view['name'];
-
+            $name = $config['name'];
             $classname = "\Hayate\View\\$name";
             if (! class_exists($classname, false))
             {
@@ -95,12 +99,12 @@ namespace Hayate\View {
     class Native extends \Hayate\AView implements \Hayate\IView
     {
         protected static $instance = NULL;
-        protected $var;
+        protected $router;
 
         protected function __construct()
         {
             parent::__construct();
-            $this->var = array();
+            $this->router = \Hayate\Util\Registry::getInstance()->get('router');
         }
 
         public static function getInstance()
@@ -117,7 +121,16 @@ namespace Hayate\View {
          */
         public function render($template)
         {
-            var_dump("will render template: {$template}");
+            extract($this->vars, EXTR_SKIP);
+            ob_start();
+            try {
+                require($this->template($template));
+            }
+            catch (Exception $ex) {
+                ob_end_clean();
+                throw $ex;
+            }
+            ob_end_flush();
         }
 
         /**
@@ -125,21 +138,36 @@ namespace Hayate\View {
          */
         public function fetch($template)
         {
-
+            extract($this->vars, EXTR_SKIP);
+            ob_start();
+            try {
+                require($this->template($template));
+            }
+            catch (Exception $ex) {
+                ob_end_clean();
+                throw $ex;
+            }
+            return ob_get_clean();
         }
 
         public function set($name, $value)
         {
-            $this->var[$name] = $value;
+            $this->vars[$name] = $value;
         }
 
         public function get($name, $default = '')
         {
-            if (isset($this->var[$name]))
+            if (isset($this->vars[$name]))
             {
-                return $this->var[$name];
+                return $this->vars[$name];
             }
             return $default;
+        }
+
+        protected function template($template)
+        {
+            return $this->router->modulesPath() .'/'. $this->router->module() .
+                '/view/'. $template . $this->config['ext'];
         }
     }
 }

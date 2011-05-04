@@ -389,6 +389,22 @@ namespace Hayate\View {
                 $this->template->render();
             }
         }
+
+        public function __get($name)
+        {
+            if ($this->template instanceof \Hayate\View)
+            {
+                return $this->template->$name;
+            }
+        }
+
+        public function __set($name, $value)
+        {
+            if ($this->template instanceof \Hayate\View)
+            {
+                $this->template->$name = $value;
+            }
+        }
     }
 }
 
