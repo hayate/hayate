@@ -44,13 +44,17 @@ class Hayate
     }
 
     /**
-     * autoload controllers
+     * autoload controllers and hayate files
      */
     private function autoload($classname)
     {
         if (strpos($classname, 'Controller') > 0)
         {
             require $this->reg->get('modules') .'/'. $this->classToPath($classname);
+        }
+        else if (strpos($classname, 'Hayate') > 0)
+        {
+            //$parts = preg_split('/\/', $classname
         }
     }
 

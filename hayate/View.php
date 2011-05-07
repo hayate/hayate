@@ -1,17 +1,10 @@
 <?php
 /**
- * @author Andrea belvedere <scieck@gmail.com>
+ * @author Andrea Belvedere <scieck@gmail.com>
  * @license http://www.opensource.org/licenses/mit-license.php
  * date: Mon Apr 25 18:21:19 JST 2011
  */
-namespace Hayate\View {
-
-    class Exception extends \Exception {}
-}
-
 namespace Hayate {
-
-    require_once 'Util.php';
 
     interface IView
     {
@@ -78,7 +71,7 @@ namespace Hayate {
 
         public function __toString()
         {
-            return $this->fetch();
+            return $this->view->fetch($this->template);
         }
 
         protected static function factory(array $config)
