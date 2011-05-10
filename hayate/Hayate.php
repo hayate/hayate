@@ -4,10 +4,6 @@
  * @license http://www.opensource.org/licenses/mit-license.php
  * date: Mon Apr 25 08:26:23 JST 2011
  */
-require_once 'Controller.php';
-require_once 'Util.php';
-
-
 class Hayate
 {
     private static $instance = NULL;
@@ -15,12 +11,12 @@ class Hayate
 
     private function __construct($config)
     {
-        $conf = new \Hayate\Util\Config($config);
-        $this->reg = \Hayate\Util\Registry::getInstance();
+        spl_autoload_register(array($this, 'autoload'));
+
+        $conf = new \Hayate\Config($config);
+        $this->reg = \Hayate\Registry::getInstance();
         $this->reg->set('config', $conf);
         $this->reg->set('modules', realpath($_SERVER['DOCUMENT_ROOT'].'/'.$conf->router['modules']));
-
-        spl_autoload_register(array($this, 'autoload'));
     }
 
     /**
@@ -48,13 +44,16 @@ class Hayate
      */
     private function autoload($classname)
     {
-        if (strpos($classname, 'Controller') > 0)
+        var_dump($classname);
+
+        if (0 === stripos($classname, 'Hayate'))
+        {
+            $parts = preg_split('/\\\\/', $classname, -1, PREG_SPLIT_NO_EMPTY);
+            require_once $parts[1].'.php';
+        }
+        else if (stripos($classname, 'Controller') > 0)
         {
             require $this->reg->get('modules') .'/'. $this->classToPath($classname);
-        }
-        else if (strpos($classname, 'Hayate') > 0)
-        {
-            //$parts = preg_split('/\/', $classname
         }
     }
 

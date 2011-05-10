@@ -6,31 +6,6 @@
  */
 namespace Hayate {
 
-    interface IView
-    {
-        /**
-         * @return void
-         */
-        public function render($template);
-
-        /**
-         * @return string
-         */
-        public function fetch($template);
-    }
-
-    abstract class AView
-    {
-        protected $config;
-        protected $vars;
-
-        protected function __construct()
-        {
-            $this->config = \Hayate\Util\Registry::getInstance()->get('config')->view;
-            $this->vars = array();
-        }
-    }
-
     class View
     {
         protected $view;
@@ -38,7 +13,7 @@ namespace Hayate {
 
         public function __construct($template)
         {
-            $config = \Hayate\Util\Registry::getInstance()->get('config');
+            $config = \Hayate\Registry::getInstance()->get('config');
             $this->view = self::factory($config->view);
             $this->template = $template;
         }
@@ -80,7 +55,7 @@ namespace Hayate {
             $classname = "\Hayate\View\\$name";
             if (! class_exists($classname, false))
             {
-                throw new \Hayate\View\Exception(_("Could not find class: {$classname}."));
+                throw new \Hayate\Exception(_("Could not find class: {$classname}."));
             }
             return $classname::getInstance();
         }
@@ -89,7 +64,29 @@ namespace Hayate {
 
 namespace Hayate\View {
 
-    class Native extends \Hayate\AView implements \Hayate\IView
+    abstract class AbstractView
+    {
+        protected $config;
+        protected $vars;
+
+        protected function __construct()
+        {
+            $this->config = \Hayate\Registry::getInstance()->get('config')->view;
+            $this->vars = array();
+        }
+
+        /**
+         * @return void
+         */
+        abstract public function render($template);
+
+        /**
+         * @return string
+         */
+        abstract public function fetch($template);
+    }
+
+    class Native extends AbstractView
     {
         protected static $instance = NULL;
         protected $router;
@@ -97,7 +94,7 @@ namespace Hayate\View {
         protected function __construct()
         {
             parent::__construct();
-            $this->router = \Hayate\Util\Registry::getInstance()->get('router');
+            $this->router = \Hayate\Registry::getInstance()->get('router');
         }
 
         public static function getInstance()
@@ -161,6 +158,47 @@ namespace Hayate\View {
         {
             return $this->router->modulesPath() .'/'. $this->router->module() .
                 '/view/'. $template . $this->config['ext'];
+        }
+    }
+
+    abstract class Controller extends \Hayate\Controller
+    {
+        protected $template = 'template';
+        protected $render = TRUE;
+
+        public function __construct()
+        {
+            parent::__construct();
+
+            if (TRUE === $this->render)
+            {
+                $this->template = new \Hayate\View($this->template);
+                $this->register(\Hayate\Controller::PostAction, array($this, 'render'));
+            }
+        }
+
+        protected function render()
+        {
+            if ($this->render)
+            {
+                $this->template->render();
+            }
+        }
+
+        public function __get($name)
+        {
+            if ($this->template instanceof \Hayate\View)
+            {
+                return $this->template->$name;
+            }
+        }
+
+        public function __set($name, $value)
+        {
+            if ($this->template instanceof \Hayate\View)
+            {
+                $this->template->$name = $value;
+            }
         }
     }
 }

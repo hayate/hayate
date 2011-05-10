@@ -27,9 +27,7 @@ class Router
 
     public function __construct(array $config)
     {
-        require_once 'Util.php';
-
-        $reg = \Hayate\Util\Registry::getInstance();
+        $reg = \Hayate\Registry::getInstance();
         $reg->set('router', $this);
 
         $this->config = $config;
