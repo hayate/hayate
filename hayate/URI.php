@@ -68,16 +68,16 @@ class URI
 
         switch (true)
         {
-        case isset($_SERVER['REQUEST_URI']):
-            $this->path = $_SERVER['REQUEST_URI'];
-            // make sure there is no query part
-            $this->path = str_replace('?'.$_SERVER['QUERY_STRING'], '', $this->path);
-            break;
         case isset($_SERVER['PATH_INFO']):
             $this->path = $_SERVER['PATH_INFO'];
             break;
         case isset($_SERVER['ORIG_PATH_INFO']):
             $this->path = $_SERVER['ORIG_PATH_INFO'];
+            break;
+        case isset($_SERVER['REQUEST_URI']):
+            $this->path = $_SERVER['REQUEST_URI'];
+            // make sure there is no query part
+            $this->path = str_replace('?'.$_SERVER['QUERY_STRING'], '', $this->path);
             break;
         }
         $this->path = trim($this->path, '/');

@@ -8,7 +8,6 @@ namespace Hayate;
 
 /**
  * Maps URI path to a model, controller and action
- * fires the Routed event when done
  */
 class Router
 {
