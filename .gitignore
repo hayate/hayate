@@ -1,1 +1,6 @@
-k
+.gitignore
+access.log
+error.log
+logs/*
+htdocs/.htaccess
+
