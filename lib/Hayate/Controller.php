@@ -29,7 +29,17 @@ abstract class Hayate_Controller
     {
         $this->request = Hayate_Request::getInstance();
         $this->input = Hayate_Input::getInstance();
+        Hayate_Event::add('hayate.post_controller', array($this, '_init'));
+        Hayate_Event::add('hayate.pre_action', array($this, '_preDispatch'));
+        Hayate_Event::add('hayate.post_dispatch', array($this, '_postDispatch'));
     }
+
+    public function _init() {}
+
+    public function _preDispatch() {}
+
+    public function _postDispatch() {}
+
 
     public function forward($action, $controller = null, $module = null, array $params = array())
     {
@@ -108,6 +118,6 @@ abstract class Hayate_Controller
     {
         Hayate_Log::info(__METHOD__ . ' '. sprintf(_('method "%s" not found.'), $method));
         throw new Hayate_Exception(sprintf(_('"%s" not found.'),
-					   Hayate_URI::getInstance()->current()), 400);
+                                           Hayate_URI::getInstance()->current()), 400);
     }
 }

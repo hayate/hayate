@@ -72,7 +72,7 @@ class Hayate_Dispatcher
             if ($rfc->isSubclassOf('Hayate_Controller') && $rfc->isInstantiable())
             {
                 Hayate_Event::run('hayate.pre_controller', array($this));
-                $controller = $rfc->newInstance();
+                $controller = new $classname();
                 Hayate_Event::run('hayate.post_controller', array($this, $controller));
                 Hayate_Event::run('hayate.pre_action', array($this));
                 $action = $rfc->hasMethod($this->action()) ? $rfc->getMethod($this->action()) : $rfc->getMethod('__call');

@@ -76,7 +76,12 @@ class Hayate_View
                 }
             }
         }
-        else if (!empty($name)) {
+        else if (! empty($name))
+        {
+            if ($value instanceof Hayate_View)
+            {
+                $value->set($this->vars);
+            }
             $this->vars[$name] = $value;
         }
     }

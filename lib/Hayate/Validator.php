@@ -20,7 +20,7 @@ class Hayate_Validator extends ArrayObject
 {
     protected $valid_rules = array('(required)','(email)','(url)','(numeric)','(boolean)',
                                    '(length)\[(\d+)\]','(range)\[([+-]?\d+)-([+-]?\d+)\]',
-				   					'(size)\[(\d+)-(\d+)\]');
+                                   '(size)\[(\d+)-(\d+)\]');
     protected $vals;
     protected $errors;
     protected $prefilters;
@@ -51,57 +51,57 @@ class Hayate_Validator extends ArrayObject
                 {
                     switch($match[1])
                     {
-                        case 'required':
-                            $error = sprintf(_('"%s" is a required field.'), $this->fieldName($field));
-                            $this->vals[$field][] = array('rule' => $match[1],
+                    case 'required':
+                        $error = sprintf(_('"%s" is a required field.'), $this->fieldName($field));
+                        $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => null,
                                                       'error' => isset($msg[$i]) ? $msg[$i] : $error);
-                            break;
-                        case 'email':
-                            $error = _('Invalid Email address.');
-                            $this->vals[$field][] = array('rule' => $match[1],
+                        break;
+                    case 'email':
+                        $error = _('Invalid Email address.');
+                        $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => null,
                                                       'error' => isset($msg[$i]) ? $msg[$i] : $error);
-                            break;
-                        case 'url':
-                            $error = _('Invalid URL address.');
-                            $this->vals[$field][] = array('rule' => $match[1],
+                        break;
+                    case 'url':
+                        $error = _('Invalid URL address.');
+                        $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => null,
                                                       'error' => isset($msg[$i]) ? $msg[$i] : $error);
-                            break;
-                        case 'numeric':
-                            $error = sprintf(_('%s must be a numeric field.'), $this->fieldName($field));
-                            $this->vals[$field][] = array('rule' => $match[1],
+                        break;
+                    case 'numeric':
+                        $error = sprintf(_('%s must be a numeric field.'), $this->fieldName($field));
+                        $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => null,
                                                       'error' => isset($msg[$i]) ? $msg[$i] : $error);
-                            break;
-                        case 'boolean':
-                            $error = sprintf(_('Invalid "%s" value.'), $this->fieldName($field));
-                            $this->vals[$field][] = array('rule' => $match[1],
+                        break;
+                    case 'boolean':
+                        $error = sprintf(_('Invalid "%s" value.'), $this->fieldName($field));
+                        $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => null,
                                                       'error' => isset($msg[$i]) ? $msg[$i] : $error);
-                            break;
-                        case 'length':
-                            $error = sprintf(_('%s must be at least %d characters long.'),
-                            $this->fieldName($field), $match[2]);
-                            $this->vals[$field][] = array('rule' => $match[1],
+                        break;
+                    case 'length':
+                        $error = sprintf(_('%s must be at least %d characters long.'),
+                                         $this->fieldName($field), $match[2]);
+                        $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => $match[2],
                                                       'error' => isset($msg[$i]) ? $msg[$i] : $error);
-                            break;
-                        case 'range':
-                            $error = sprintf(_('%s must be between %d and %d inclusive.'),
-                            $this->fieldName($field), $match[2], $match[3]);
-                            $this->vals[$field][] = array('rule' => $match[1],
+                        break;
+                    case 'range':
+                        $error = sprintf(_('%s must be between %d and %d inclusive.'),
+                                         $this->fieldName($field), $match[2], $match[3]);
+                        $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => array($match[2],$match[3]),
                                                       'error' => isset($msg[$i]) ? $msg[$i] : $error);
-                            break;
-                        case 'size':
-                            $error = sprintf(_('%s must be between %d and %d (inclusive) characters long.'),
-                            $this->fieldName($field), $match[2], $match[3]);
-                            $this->vals[$field][] = array('rule' => $match[1],
+                        break;
+                    case 'size':
+                        $error = sprintf(_('%s must be between %d and %d (inclusive) characters long.'),
+                                         $this->fieldName($field), $match[2], $match[3]);
+                        $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => array($match[2],$match[3]),
                                                       'error' => isset($msg[$i]) ? $msg[$i] : $error);
-                            break;
+                        break;
                     }
                 }
             }
@@ -138,7 +138,7 @@ class Hayate_Validator extends ArrayObject
                         break;
                     }
                 }
-                else if (isset($rule['callback']))
+                else if (! isset($this->errors[$field]) && isset($rule['callback']))
                 {
                     $params = array(&$this, $field, $rule['callback'][1]);
                     call_user_func_array($rule['callback'][0], $params);
@@ -254,7 +254,8 @@ class Hayate_Validator extends ArrayObject
     {
         foreach ($this->prefilters as $field => &$filter)
         {
-            if ('*' == $field) {
+            if ('*' == $field)
+            {
                 foreach ($this as $key => $val)
                 {
                     array_unshift($filter[1], $val);
@@ -319,7 +320,7 @@ class Hayate_Validator extends ArrayObject
                 trigger_error("Invalid non numeric param in ".__METHOD__);
                 return false;
             }
-            return (mb_strlen($this[$field], 'UTF-8') >= $params);
+            return (mb_strlen($this[$field], Hayate_Config::getInstance()->get('charset', 'UTF-8')) >= $params);
         }
         return true;
     }
@@ -347,10 +348,11 @@ class Hayate_Validator extends ArrayObject
     {
         if (array_key_exists($field, $this))
         {
+            $charset = Hayate_Config::getInstance()->get('charset', 'UTF-8');
             $min = $params[0];
             $max = $params[1];
-            return ((mb_strlen($this[$field], 'UTF-8') >= $min) &&
-		    (mb_strlen($this[$field], 'UTF-8') <= $max));
+            return ((mb_strlen($this[$field], $charset) >= $min) &&
+                    (mb_strlen($this[$field], $charset) <= $max));
         }
         return true;
     }

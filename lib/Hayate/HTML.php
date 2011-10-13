@@ -30,4 +30,45 @@ class Hayate_HTML
         $link .= '</a>';
         return $link;
     }
+
+    public static function form($action = NULL, $method = 'post', $upload = FALSE, array $attribs = array())
+    {
+        if (NULL === $action)
+        {
+            $action = Hayate_URI::getInstance()->current();
+        }
+        $buf = '<form action="'. $action .'" method="'. $method .'"';
+        if ($upload)
+        {
+            $buf .= ' enctype="multipart/form-data"';
+        }
+        foreach ($attribs as $key => $val)
+        {
+            $buf .= " {$key}=\"{$val}\"";
+        }
+        $buf .= '>';
+        echo $buf."\n";
+    }
+
+    public static function closeForm()
+    {
+        echo "</form>\n";
+    }
+
+    public static function input($name = '', $value = '', $type = 'text', array $attribs = array())
+    {
+        $input = '<input type="'.$type.'"';
+        if (! empty($name))
+        {
+            $input .= (' name="'.$name.'"');
+        }
+        $input .= (' value="'.$value.'"');
+
+        foreach ($attribs as $key => $val)
+        {
+            $input .= " {$key}=\"{$val}\"";
+        }
+        $input .= '/>';
+        echo $input ."\n";
+    }
 }

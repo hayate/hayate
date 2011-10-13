@@ -38,7 +38,7 @@ abstract class Hayate_ORM
     {
         if (! isset($this->table_name))
         {
-            $this->table_name = strtolower(str_ireplace('_model', '', get_class($this)));
+            $this->table_name = Hayate_Inflector::pluralize(strtolower(str_ireplace('_model', '', get_class($this))));
         }
         if (!isset($this->class_name))
         {
@@ -55,7 +55,7 @@ abstract class Hayate_ORM
 
     public static function factory($name, $id = null)
     {
-        $classname = ucfirst(strtolower($name)).'_Model';
+        $classname = ucfirst(Hayate_Inflector::singularize(strtolower($name))).'_Model';
         return new $classname($id);
     }
 

@@ -1,21 +1,21 @@
 <?php
 /**
-* Hayate Framework
-* Copyright 2010 Andrea Belvedere
-*
-* Hayate is free software: you can redistribute it and/or
-* modify it under the terms of the GNU Lesser General Public
-* License as published by the Free Software Foundation, either
-* version 3 of the License, or (at your option) any later version.
-*
-* This software is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public
-* License along with this library. If not, see <http://www.gnu.org/licenses/>.
-*/
+ * Hayate Framework
+ * Copyright 2010 Andrea Belvedere
+ *
+ * Hayate is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation, either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ */
 class Hayate_Cookie
 {
     protected static $instance = null;
@@ -76,6 +76,7 @@ class Hayate_Cookie
         $domain = is_null($domain) ? $this->domain : $domain;
         $secure = is_null($secure) ? (bool)$this->secure : $secure;
         $httponly = is_null($httponly) ? (bool)$this->httponly : $httponly;
+        $value = serialize($value);
 
         if ($this->encrypt)
         {
@@ -85,7 +86,7 @@ class Hayate_Cookie
         $expiration = empty($expire) ? 0 : gmdate('U') + $expire;
         if (! empty($domain))
         {
-            // make sure there are not staring dot
+            // make sure there no starting dot
             $domain = ltrim($domain, '.');
             // make sure it has an acceptable top level domain name
             if (1 == preg_match('/.+\.[a-z]{2,4}$/i', $domain))
@@ -108,7 +109,7 @@ class Hayate_Cookie
      */
     public function get($name, $default = null, $xss_clean = null)
     {
-	if (! $this->exists($name))
+        if (! $this->exists($name))
         {
             return $default;
         }
@@ -125,7 +126,9 @@ class Hayate_Cookie
         {
             $xss = $xss_clean;
         }
-        return $xss ? htmlentities($ans, ENT_QUOTES, 'utf-8') : $ans;
+
+        $ans = unserialize($ans);
+        return $xss ? htmlspecialchars($ans, ENT_QUOTES, Hayate_Config::getInstance()->get('charset', 'UTF-8')) : $ans;
     }
 
     /**
@@ -160,6 +163,6 @@ class Hayate_Cookie
      */
     public function exists($name)
     {
-	return array_key_exists($name, $_COOKIE);
+        return array_key_exists($name, $_COOKIE);
     }
 }
