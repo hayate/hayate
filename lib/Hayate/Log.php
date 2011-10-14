@@ -30,14 +30,14 @@ class Hayate_Log
 
     private function __construct() {}
 
-    public static function error($msg, $print_r = false)
+    public static function error($msg, $use_print_r = false)
     {
         if ($msg instanceof Exception)
         {
-            self::ex($msg);
+            self::ex($msg, $use_print_r);
         }
         else {
-            self::write(self::HAYATE_LOG_ERROR, $msg, $print_r);
+            self::write(self::HAYATE_LOG_ERROR, $msg, $use_print_r);
         }
     }
 

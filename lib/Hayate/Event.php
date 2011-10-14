@@ -25,11 +25,12 @@ class Hayate_Event
      * @param string|array $callback The callback method to register
      * @return void
      */
-    public static function add($name, $callback, array $params = array())
+    public static function add($name, $callback, array $params = array(), &$ret = NULL)
     {
         $event = new stdClass();
         $event->callback = $callback;
         $event->params = $params;
+        $event->ret = &$ret;
         self::$events[$name][] = $event;
     }
 
@@ -47,7 +48,7 @@ class Hayate_Event
     /**
      * @param string $name The name of the Event
      * @param array $params Parameter(s) to pass to the callback method to run
-     * @return mixed
+     * @return void
      */
     public static function run($name, array $params = array())
     {
@@ -55,21 +56,42 @@ class Hayate_Event
         {
             while (null !== ($event = array_shift(self::$events[$name])))
             {
-                if (is_callable($event->callback))
+                $params = array_merge($params, $event->params);
+
+                if (2 == count($event->callback))
                 {
-                    $params = array_merge($params, $event->params);
-                    $ret = call_user_func_array($event->callback, $params);
-                    // return if we have a return value, else continue
-                    // processing events
-                    if (isset($ret))
+                    $obj = $event->callback[0];
+                    $method = $event->callback[1];
+
+                    switch (count($params))
                     {
-                        self::remove($name);
-                        return $ret;
+                    case 0:
+                        $event->ret = $obj->$method();
+                        break;
+                    case 1:
+                        $event->ret = $obj->$method($params[0]);
+                        break;
+                    case 2:
+                        $event->ret = $obj->$method($params[0], $params[1]);
+                        break;
+                    case 3:
+                        $event->ret = $obj->$method($params[0], $params[1], $params[2]);
+                        break;
+                    case 4:
+                        $event->ret = $obj->$method($params[0], $params[1], $params[2], $params[3]);
+                        break;
+                    case 5:
+                        $event->ret = $obj->$method($params[0], $params[1], $params[2], $params[3], $params[5]);
+                        break;
+                    default:
+                        $event->ret = call_user_func_array($event->callback, $params);
                     }
+                }
+                else {
+                    $event->ret = call_user_func_array($event->callback, $params);
                 }
             }
             self::remove($name);
         }
-        return null;
     }
 }

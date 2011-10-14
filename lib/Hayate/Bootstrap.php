@@ -38,25 +38,26 @@ final class Hayate_Bootstrap
             throw new Hayate_Exception(sprintf(_('Hayate requires PHP >= %s, but %s is installed.'),
                                                self::REQUIRED_PHP_VERSION, PHP_VERSION));
         }
-        // register error handler
-        set_error_handler('Hayate_Bootstrap::error_handler');
-        // register shutdown function, capture fatal errors
-        register_shutdown_function('Hayate_Bootstrap::shutdown_function');
-
         // Hayate knows how to autoload its own classes
-        if (false === spl_autoload_functions())
+        if (FALSE === spl_autoload_functions())
         {
-            if (function_exists('__autoload')) {
+            if (function_exists('__autoload'))
+            {
                 spl_autoload_register('__autoload');
             }
         }
-
         spl_autoload_register('Hayate_Bootstrap::autoload');
-        // register exception handler
-        set_exception_handler(array(Hayate_Dispatcher::getInstance(), 'exceptionDispatch'));
 
         // load main config
         $config = Hayate_Config::load();
+
+        // register exception handler
+        set_exception_handler(array(Hayate_Dispatcher::getInstance(), 'exceptionDispatch'));
+        // register error handler
+        set_error_handler('Hayate_Bootstrap::error_handler', $config->get('error_reporting', E_ALL | E_STRICT));
+        // register shutdown function, capture fatal errors
+        register_shutdown_function('Hayate_Bootstrap::shutdown_function');
+
         // to autoload models class
         self::$modelsPath = $config->get('models_dir', array());
 
@@ -233,12 +234,8 @@ final class Hayate_Bootstrap
         $error = error_get_last();
         if (is_array($error))
         {
-            require_once 'Hayate/Exception.php';
-            $ex = new Hayate_Exception($error['message'], $error['type']);
-            $ex->setFile($error['file']);
-            $ex->setLine($error['line']);
-            Hayate_Log::ex($ex);
-            throw $ex;
+            $msg = 'Fatal error: '.$error['message'] .' in: '.$error['file'].' on line: '.$error['line'];
+            Hayate_Log::error($msg);
         }
     }
 

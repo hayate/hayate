@@ -1,7 +1,7 @@
 <?php
 /**
  * Hayate Framework
- * Copyright 2009-2010 Andrea Belvedere
+ * Copyright 2009-2011 Andrea Belvedere
  *
  * Hayate is free software: you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -55,7 +55,7 @@ abstract class Hayate_ORM
 
     public static function factory($name, $id = null)
     {
-        $classname = ucfirst(Hayate_Inflector::singularize(strtolower($name))).'_Model';
+        $classname = ucfirst(strtolower($name)).'_Model';
         return new $classname($id);
     }
 
@@ -143,7 +143,7 @@ abstract class Hayate_ORM
     {
         if (null !== $id)
         {
-        $this->db->delete($this->table_name, array($this->primaryField($id) => $id));
+            $this->db->delete($this->table_name, array($this->primaryField($id) => $id));
         }
         else {
             if (! $this->loaded())
@@ -157,7 +157,7 @@ abstract class Hayate_ORM
 
     public function count(array $where = array())
     {
-    return $this->db->count($this->table_name, $where);
+        return $this->db->count($this->table_name, $where);
     }
 
     /**

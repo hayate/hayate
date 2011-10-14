@@ -90,13 +90,13 @@ class Hayate_Auth
     /**
      * @return bool TRUE if credentials are valid, FALSE otherwise
      */
-    public function authenticate($identifier, $secret, $algo = NULL, $remember = FALSE)
+    public function authenticate($identifier, $secret, $salt = '', $algo = NULL, $remember = FALSE)
     {
         $this->setStatus(FALSE);
 
         if (is_string($algo))
         {
-            $secret = hash($algo, $secret);
+            $secret = hash($algo, $salt.$secret);
         }
         try {
             $this->identity = $this->db->from($this->table)->where($this->identifier, $identifier)->get();
@@ -105,7 +105,7 @@ class Hayate_Auth
                 $this->setStatus(self::ERROR_IDENTIFIER);
                 return FALSE;
             }
-            if (0 !== strcmp($secret, $identity->{$this->secret}))
+            if (0 !== strcmp($secret, $this->identity->{$this->secret}))
             {
                 $this->setStatus(self::ERROR_SECRET);
                 return FALSE;
@@ -140,9 +140,9 @@ class Hayate_Auth
         }
         else if ($this->cookie->exists(self::AUTHID))
         {
-            $identity = $this->cookie->get(self::AUTHID);
-            $this->session->set(self::AUTHID, $identity);
-            return $identity;
+            $this->identity = $this->cookie->get(self::AUTHID);
+            $this->session->set(self::AUTHID, $this->identity);
+            return $this->identity;
         }
         return FALSE;
     }
