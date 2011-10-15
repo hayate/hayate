@@ -20,7 +20,7 @@ class Hayate_Validator extends ArrayObject
 {
     protected $valid_rules = array('(required)','(email)','(url)','(numeric)','(boolean)',
                                    '(length)\[(\d+)\]','(range)\[([+-]?\d+)-([+-]?\d+)\]',
-                                   '(size)\[(\d+)-(\d+)\]');
+                                   '(size)\[(\d+)-(\d+)\]','(regex)\[(.+)\]');
     protected $vals;
     protected $errors;
     protected $prefilters;
@@ -100,6 +100,12 @@ class Hayate_Validator extends ArrayObject
                                          $this->fieldName($field), $match[2], $match[3]);
                         $this->vals[$field][] = array('rule' => $match[1],
                                                       'param' => array($match[2],$match[3]),
+                                                      'error' => isset($msg[$i]) ? $msg[$i] : $error);
+                        break;
+                    case 'regex':
+                        $error = sprintf(_('%s has an invalid format.'), $this->fieldName($field));
+                        $this->vals[$field][] = array('rule' => $match[1],
+                                                      'param' => array($match[2]),
                                                       'error' => isset($msg[$i]) ? $msg[$i] : $error);
                         break;
                     }
@@ -291,7 +297,8 @@ class Hayate_Validator extends ArrayObject
 
     protected function url($field, $params = null)
     {
-        if (array_key_exists($field, $this)) {
+        if (array_key_exists($field, $this))
+        {
             return (filter_var($this[$field], FILTER_VALIDATE_URL) !== false);
         }
         return true;
@@ -307,7 +314,8 @@ class Hayate_Validator extends ArrayObject
 
     protected function boolean($field, $params = null)
     {
-        if (array_key_exists($field, $this)) {
+        if (array_key_exists($field, $this))
+        {
             return (filter_var($this[$field], FILTER_VALIDATE_BOOLEAN, array('flags'=>FILTER_NULL_ON_FAILURE))!==NULL);
         }
         return true;
@@ -355,5 +363,15 @@ class Hayate_Validator extends ArrayObject
                     (mb_strlen($this[$field], $charset) <= $max));
         }
         return true;
+    }
+
+    protected function regex($field, array $params)
+    {
+        if (array_key_exists($field, $this))
+        {
+            return (FALSE !== filter_var($this[$field], FILTER_VALIDATE_REGEXP,
+                                         array('options' => array('regexp' => $params[0]))));
+        }
+        return TRUE;
     }
 }

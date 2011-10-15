@@ -48,8 +48,22 @@ class Hayate_Auth
         $this->session = Hayate_Session::getInstance();
         $this->cookie = Hayate_Cookie::getInstance();
         $this->db = Hayate_Database::getInstance();
-        $this->status = FALSE;
-        $this->identity = NULL;
+
+        if ($this->session->exists(self::AUTHID))
+        {
+            $this->identity = $this->session->get(self::AUTHID);
+            $this->status = self::SUCCESS;
+        }
+        else if ($this->cookie->exists(self::AUTHID))
+        {
+            $this->identity = $this->cookie->get(self::AUTHID);
+            $this->session->set(self::AUTHID, $this->identity);
+            $this->status = self::SUCCESS;
+        }
+        else {
+            $this->status = FALSE;
+            $this->identity = NULL;
+        }
     }
 
     public static function getInstance()
@@ -134,17 +148,7 @@ class Hayate_Auth
      */
     public function authenticated()
     {
-        if ($this->session->exists(self::AUTHID))
-        {
-            return $this->session->get(self::AUTHID);
-        }
-        else if ($this->cookie->exists(self::AUTHID))
-        {
-            $this->identity = $this->cookie->get(self::AUTHID);
-            $this->session->set(self::AUTHID, $this->identity);
-            return $this->identity;
-        }
-        return FALSE;
+        return NULL !== $this->identity;
     }
 
     /**
@@ -161,6 +165,8 @@ class Hayate_Auth
      */
     public function clear()
     {
+        $this->identity = NULL;
+        $this->status = FALSE;
         $this->session->delete(self::AUTHID);
         $this->cookie->delete(self::AUTHID);
     }
