@@ -29,8 +29,6 @@ abstract class Hayate_Controller
     {
         $this->request = Hayate_Request::getInstance();
         $this->input = Hayate_Input::getInstance();
-        Hayate_Event::add('hayate.post_controller', array($this, '_init'));
-        Hayate_Event::add('hayate.pre_action', array($this, '_preDispatch'));
         Hayate_Event::add('hayate.post_dispatch', array($this, '_postDispatch'));
     }
 
@@ -74,6 +72,11 @@ abstract class Hayate_Controller
     public function put($name = null, $default = null)
     {
         return $this->input->put($name, $default);
+    }
+
+    public function has($name, &$where = NULL)
+    {
+        return $this->input->has($name, $where);
     }
 
     public function redirect($location, $code = 302)

@@ -34,17 +34,19 @@ class Hayate_Input
                               'rawput' => array());
         if (Hayate_Config::getInstance()->get('xss_clean', true))
         {
+            $charset = Hayate_Config::getInstance()->get('charset', 'UTF-8');
+
             foreach ($_GET as $key => $val)
             {
-                $this->params['get'][$key] = htmlentities($val, ENT_QUOTES, 'utf-8');
+                $this->params['get'][$key] = htmlspecialchars($val, ENT_QUOTES, $charset);
             }
             foreach ($_POST as $key => $val)
             {
-                $this->params['post'][$key] = htmlentities($val, ENT_QUOTES, 'utf-8');
+                $this->params['post'][$key] = htmlspecialchars($val, ENT_QUOTES, $charset);
             }
             foreach ($_COOKIE as $key => $val)
             {
-                $this->params['cookie'][$key] = htmlentities($val, ENT_QUOTES, 'utf-8');
+                $this->params['cookie'][$key] = htmlspecialchars($val, ENT_QUOTES, $charset);
             }
         }
         if (Hayate_Request::getInstance()->isPut())
@@ -95,10 +97,35 @@ class Hayate_Input
 
     public function cookie($name = null, $default = null)
     {
-        if (null === $name) {
+        if (null === $name)
+        {
             return $this->params[__FUNCTION__];
         }
         return $this->param($name, $default, __FUNCTION__);
+    }
+
+    /**
+     * @param string $name Name of parameter
+     * @param string $where If passed should be one of get,post,cookie
+     * or put, is not past and $name if found it will hold where it
+     * was found (i.e. get,post,put or cookie)
+     * @return bool TRUE is $name is found FALSE otherwise
+     */
+    public function has($name, &$where = NULL)
+    {
+        if (NULL === $where)
+        {
+            foreach (array_keys($this->params) as $type)
+            {
+                if (array_key_exists($name, $this->params[$type]))
+                {
+                    $where = $type;
+                    return TRUE;
+                }
+            }
+            return FALSE;
+        }
+        return array_key_exists($where, $this->params) ? (array_key_exists($name, $this->params[$where]) ? TRUE : FALSE) : FALSE;
     }
 
     public function param($name, $default = null, $type = null)

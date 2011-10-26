@@ -29,7 +29,7 @@ class Hayate_Dispatcher
     protected $controller = 'index';
     protected $action = 'index';
     protected $modulesPath;
-    protected $params;
+    protected $params = array();
     protected $errorReporter;
 
 
@@ -68,21 +68,66 @@ class Hayate_Dispatcher
             }
             require_once $filepath;
             $classname = ucfirst($this->module).'_'.ucfirst($this->controller).'Controller';
+
             $rfc = new ReflectionClass($classname);
             if ($rfc->isSubclassOf('Hayate_Controller') && $rfc->isInstantiable())
             {
                 Hayate_Event::run('hayate.pre_controller', array($this));
                 $controller = new $classname();
+                $controller->_init();
                 Hayate_Event::run('hayate.post_controller', array($this, $controller));
-                Hayate_Event::run('hayate.pre_action', array($this));
-                $action = $rfc->hasMethod($this->action()) ? $rfc->getMethod($this->action()) : $rfc->getMethod('__call');
-                if ($action->isPublic() && (strpos($action->getName(), '_') !== 0))
+
+                $action = NULL;
+                $params = $this->params();
+
+                if ($rfc->hasMethod($this->action()))
                 {
-                    $action->invokeArgs($controller, $this->params());
+                    $method = $rfc->getMethod($this->action());
+                    if (0 !== strpos($this->action(), '_') && $method->isPublic())
+                    {
+                        $action = $this->action();
+                    }
                 }
-                else if ($action->getName() == '__call')
+                else if ($rfc->hasMethod('index'))
                 {
-                    $action->invoke($controller, $this->action(), $this->params());
+                    $method = $rfc->getMethod('index');
+                    array_unshift($params, $this->action());
+                    if ($method->getNumberOfParameters() == count($params) && $method->isPublic())
+                    {
+                        $action = 'index';
+                    }
+                }
+                if (! isset($action))
+                {
+                    // if action does not exists the default __call
+                    // method will be called
+                    $action = $this->action();
+                }
+                $controller->_preDispatch();
+                Hayate_Event::run('hayate.pre_action', array($this));
+
+                switch (count($params))
+                {
+                case 0:
+                    $controller->$action();
+                    break;
+                case 1:
+                    $controller->$action($params[0]);
+                    break;
+                case 2:
+                    $controller->$action($params[0], $params[1]);
+                    break;
+                case 3:
+                    $controller->$action($params[0], $params[1], $params[2]);
+                    break;
+                case 4:
+                    $controller->$action($params[0], $params[1], $params[2], $params[3]);
+                    break;
+                case 5:
+                    $controller->$action($params[0], $params[1], $params[2], $params[3], $params[4]);
+                    break;
+                default:
+                    call_user_func_array(array($controller, $action), $params);
                 }
                 Hayate_Event::run('hayate.post_action', array($this));
             }

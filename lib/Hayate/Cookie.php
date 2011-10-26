@@ -109,7 +109,7 @@ class Hayate_Cookie
      */
     public function get($name, $default = null, $xss_clean = null)
     {
-        if (! $this->exists($name))
+        if (! array_key_exists($name, $_COOKIE))
         {
             return $default;
         }
@@ -128,7 +128,7 @@ class Hayate_Cookie
         }
 
         $ans = unserialize($ans);
-        return $xss ? htmlspecialchars($ans, ENT_QUOTES, Hayate_Config::getInstance()->get('charset', 'UTF-8')) : $ans;
+        return (is_string($ans) && $xss) ? htmlspecialchars($ans, ENT_QUOTES, Hayate_Config::getInstance()->get('charset', 'UTF-8')) : $ans;
     }
 
     /**
