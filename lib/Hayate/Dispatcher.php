@@ -22,7 +22,10 @@
  */
 class Hayate_Dispatcher
 {
+    const DefaultController = 'index';
+
     protected static $instance = null;
+
     protected $routedUri;
     protected $uri;
     protected $module;
@@ -56,8 +59,8 @@ class Hayate_Dispatcher
 
     public function dispatch()
     {
-        $filepath = $this->modulesPath.$this->module().'/controllers/'.$this->controller().'.php';
-        if (is_file($filepath))
+        // $filepath = $this->modulesPath.$this->module().'/controllers/'.$this->controller().'.php';
+        if ($this->controllerExists($filepath))
         {
             // we found a valid controller
             // load this module bootstrap.php file if it exists
@@ -92,7 +95,9 @@ class Hayate_Dispatcher
                 {
                     $method = $rfc->getMethod('index');
                     array_unshift($params, $this->action());
-                    if ($method->getNumberOfParameters() == count($params) && $method->isPublic())
+                    if ($method->getNumberOfParameters() >= count($params) &&
+			count($params) >= $method->getNumberOfRequiredParameters() &&
+			$method->isPublic())
                     {
                         $action = 'index';
                     }
@@ -227,6 +232,32 @@ class Hayate_Dispatcher
         {
             $this->params = $params;
         }
+    }
+
+    protected function controllerExists(&$filepath)
+    {
+	// if the original (routed) controller is not found
+	// the default controller is used (if it exists)
+	// and the whole chain in shiften, the original controller
+	// becomes the action, and the action becomes the first parameter
+	$filepath = $this->modulesPath.$this->module().'/controllers/'.$this->controller().'.php';
+	if (! is_file($filepath))
+	{
+	    // try the default controller
+	    $filepath = $this->modulesPath.$this->module().'/controllers/'.self::DefaultController.'.php';
+	    if (is_file($filepath))
+	    {
+		if ('index' != $this->action())
+		{
+		    array_unshift($this->params, $this->action());
+		}
+		$this->action($this->controller());
+		$this->controller(self::DefaultController);
+		return TRUE;
+	    }
+	    return FALSE;
+	}
+	return TRUE;
     }
 
     protected function route()

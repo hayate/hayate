@@ -71,15 +71,15 @@ class Hayate_Database_Pdo extends PDO
                 switch ($driver)
                 {
                 case 'mysql':
-            $stmt = $this->prepare("SET NAMES ?");
-            break;
+		    $stmt = $this->prepare("SET NAMES ?");
+		    break;
                 case 'pgsql':
                     $stmt = $this->prepare("SET NAMES '?'");
-                break;
+		    break;
                 case 'sqlite':
                 case 'sqlite2':
                     $stmt = $this->prepare("PRAGMA encoding='?'");
-                break;
+		    break;
                 }
             }
             if (isset($stmt)) {
@@ -208,7 +208,8 @@ class Hayate_Database_Pdo extends PDO
     {
         if (is_array($field))
         {
-            foreach ($field as $key => $val) {
+            foreach ($field as $key => $val)
+	    {
                 $this->set($key, $val);
             }
         }
@@ -260,7 +261,7 @@ class Hayate_Database_Pdo extends PDO
         $sets = array();
         foreach ($this->set as $key => $val)
         {
-            $sets[] = "{$key}={$val}";
+            $sets[] = "`{$key}`={$val}";
         }
         $sql = "UPDATE ".$table." SET ".implode(', ', $sets)." WHERE ".implode(' ', $this->where);
         return $this->exec($sql);
@@ -268,8 +269,8 @@ class Hayate_Database_Pdo extends PDO
 
     public function exec($sql)
     {
-    $this->reset();
-    return parent::exec($sql);
+	$this->reset();
+	return parent::exec($sql);
     }
 
     public function query($sql)
@@ -321,7 +322,11 @@ class Hayate_Database_Pdo extends PDO
         {
             throw new Hayate_Database_Exception(_sprintf(("Missing set in: %s"), __METHOD__));
         }
-        $sql = 'INSERT INTO '.$table.' ('.implode(', ', array_keys($this->set)).') VALUES ('.implode(', ', array_values($this->set)).')';
+        $keys = array_keys($this->set);
+        array_walk($keys, function(&$key) {
+		$key = "`".$key."`";
+	    });
+        $sql = 'INSERT INTO '.$table.' ('.implode(', ', $keys).') VALUES ('.implode(', ', array_values($this->set)).')';
         return $this->exec($sql);
     }
 
@@ -374,7 +379,7 @@ class Hayate_Database_Pdo extends PDO
         }
         try {
             $ret = $this->query($sql, self::FETCH_COLUMN, 0)
-            ->fetch(self::FETCH_NUM);
+		->fetch(self::FETCH_NUM);
             return $ret[0];
         }
         catch (Exception $ex) {
@@ -556,18 +561,18 @@ class Hayate_Database_Pdo extends PDO
     {
         switch(true)
         {
-            case is_bool($value):
-                return parent::quote($value, PDO::PARAM_BOOL);
-            case is_null($value):
-                return parent::quote($value, PDO::PARAM_NULL);
-            case is_int($value):
-                return parent::quote(intval($value), PDO::PARAM_INT);
-            case is_numeric($value):
-                return parent::quote(intval($value), PDO::PARAM_INT);
-            case is_string($value):
-                return parent::quote($value, PDO::PARAM_STR);
-            default:
-                return parent::quote($value, $parameter_type);
+	case is_bool($value):
+	    return parent::quote($value, PDO::PARAM_BOOL);
+	case is_null($value):
+	    return parent::quote($value, PDO::PARAM_NULL);
+	case is_int($value):
+	    return parent::quote(intval($value), PDO::PARAM_INT);
+	case is_numeric($value):
+	    return parent::quote(intval($value), PDO::PARAM_INT);
+	case is_string($value):
+	    return parent::quote($value, PDO::PARAM_STR);
+	default:
+	    return parent::quote($value, $parameter_type);
         }
     }
 
@@ -630,7 +635,8 @@ class Hayate_Database_Pdo extends PDO
     {
         if (is_array($field))
         {
-            foreach ($field as $key => $value) {
+            foreach ($field as $key => $value)
+	    {
                 $this->compileWhere($key, $value, $opt);
             }
         }

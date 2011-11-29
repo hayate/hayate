@@ -10,18 +10,17 @@
  *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 /**
  * The Router class finds the module, controller and action to be
  * invoked by the dispatcher.
  *
- * @package Hayate
- */
+ * @package Hayate */
 class Hayate_Router
 {
     protected static $instance = null;
@@ -29,9 +28,10 @@ class Hayate_Router
     protected $path;
     protected $routed_path;
 
+
     protected function __construct()
     {
-        $config = Hayate_Config::load('routes', false);
+	$config = Hayate_Config::load('routes', false);
 	if ($config && isset($config->routes))
 	{
 	    $this->routes = $config->routes->getArrayCopy();
@@ -40,71 +40,73 @@ class Hayate_Router
 	{
 	    $keys = array_keys($this->routes);
 	    $values = array_values($this->routes);
+
 	    array_walk($keys, array($this, 'trimSlash'));
 	    array_walk($values, array($this, 'trimSlash'));
+
 	    $this->routes = array_combine($keys, $values);
 	}
-        $base_path = array();
-        if (isset($config->core->base_path))
+	$base_path = array();
+	if (isset($config->core->base_path))
 	{
-            $base_path = preg_split('|/|', $config->core->base_path, -1, PREG_SPLIT_NO_EMPTY);
-        }
-        $segments = Hayate_URI::getInstance()->segments();
-        for ($i = 0; $i < count($base_path); $i++)
-        {
-            if (isset($segments[$i]) && ($segments[$i] == $base_path[$i]))
-            {
-                unset($segments[$i]);
-            }
-        }
-        $this->path = $this->routed_path = implode('/',$segments);
+	    $base_path = preg_split('|/|', $config->core->base_path, -1, PREG_SPLIT_NO_EMPTY);
+	}
+
+	$segments = Hayate_URI::getInstance()->segments();
+
+	for ($i = 0; $i < count($base_path); $i++)
+	{
+	    if (isset($segments[$i]) && ($segments[$i] == $base_path[$i]))
+	    {
+		unset($segments[$i]);
+	    }
+	}
+	$this->path = $this->routed_path = implode('/',$segments);
     }
 
     public static function getInstance()
     {
-        if (null === self::$instance) {
-            self::$instance = new self();
-        }
-        return self::$instance;
+	if (null === self::$instance)
+	{
+	    self::$instance = new self();
+	}
+	return self::$instance;
     }
 
     public function route()
     {
-        if (isset($this->routes[$this->path]))
-        {
-            $this->routed_path = $this->routes[$this->path];
-        }
-        else if($this->routes)
-        {
-            foreach ($this->routes as $key => $val)
-            {
-                if (preg_match('|^'.$key.'|u', $this->path) == 1)
-                {
-                    if (false !== strpos($val, '$'))
+	if (isset($this->routes[$this->path]))
+	{
+	    $this->routed_path = $this->routes[$this->path];
+	}
+	else if($this->routes)
+	{
+	    foreach ($this->routes as $key => $val)
+	    {
+		if (preg_match('|^'.$key.'|u', $this->path) == 1)
+		{
+		    if (false !== strpos($val, '$'))
 		    {
-                        $this->routed_path = preg_replace('|^'.$key.'|u', $val, $this->path);
-                    }
-                    else {
-                        $this->routed_path = $val;
-                    }
-                    break;
-                }
-            }
-        }
+			$this->routed_path = preg_replace('|^'.$key.'|u', $val, $this->path);
+		    }
+		    else {
+			$this->routed_path = $val;
+		    }
+		    break;
+		}
+	    }
+	}
     }
 
     public function path()
     {
-        return $this->path;
+	return $this->path;
     }
 
     public function routedPath()
     {
-        return $this->routed_path;
+	return $this->routed_path;
     }
 
-    public function trimSlash(&$value, $key)
-    {
-	$value = trim($value, '\//');
-    }
+    public function trimSlash(&$value, $key) { $value = trim($value, '\//'); }
 }
